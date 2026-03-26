@@ -583,3 +583,366 @@ After implementing each pruning function, verify it on a freshly instantiated mo
 7. Run a forward pass to make sure the model still produces output (not errors).
 
 ---
+
+## Phase 5 — The Iterative Pruning Pipeline (The Experiment Loop)
+
+This is the execution engine. You will run the **full pruning → rewind → retrain** loop three separate times — once for each ticket type (Winner, Random, Loser). Each run produces a series of reconstructed images at increasing sparsity levels and logs the corresponding PSNR values.
+
+**File:** `src/pipeline.py`
+
+### 5.1 — Define the Pruning Schedule
+
+Before you start the loop, calculate exactly how many pruning iterations you need and what sparsity level each iteration corresponds to.
+
+1. **Prune rate per iteration:** `p = PRUNE_RATE` (e.g., `0.20` = remove 20% of surviving weights each round).
+
+2. **Remaining weights after `k` iterations:** `remaining(k) = (1 - p)^k`. This is exponential decay.
+
+3. **Number of iterations to reach target sparsity:**
+   ```
+   k = ceil( log(TARGET_SPARSITY) / log(1 - p) )
+   ```
+   For `p = 0.20` and `TARGET_SPARSITY = 0.02`:
+   ```
+   k = ceil( log(0.02) / log(0.80) ) = ceil( -3.912 / -0.223 ) = ceil(17.53) = 18 iterations
+   ```
+
+4. **Pre-compute the sparsity schedule** as a list:
+   ```
+   Iteration 0:  100.0% remaining (dense baseline)
+   Iteration 1:   80.0% remaining
+   Iteration 2:   64.0% remaining
+   Iteration 3:   51.2% remaining
+   Iteration 4:   41.0% remaining
+   Iteration 5:   32.8% remaining
+   ...
+   Iteration 15:   3.5% remaining
+   Iteration 16:   2.8% remaining
+   Iteration 17:   2.3% remaining
+   Iteration 18:   1.8% remaining
+   ```
+
+   Store this schedule for logging purposes. It helps you label images and plot axes correctly.
+
+### 5.2 — The Core Iterative Pruning Loop
+
+This is the main function you will call three times. Write it as:
+
+```
+def run_pruning_pipeline(
+    ticket_type: str,           # "winner", "random", or "loser"
+    prune_function: callable,   # One of the three functions from Phase 4
+    initial_weights_path: str,  # Path to initial_weights.pth
+    config: dict,               # All hyperparameters
+    dataloader,                 # The coordinate DataLoader
+    coords_full,                # Full coordinate grid for reconstruction
+):
+```
+
+**The loop — explained step by step:**
+
+#### Step A — Initialize a Fresh Model
+
+1. Create a brand-new SIREN model instance (identical architecture to the baseline).
+2. Load the initial weights: `model.load_state_dict(torch.load(initial_weights_path))`.
+3. Move to GPU.
+4. This model starts in the exact same state as the baseline — completely untouched.
+
+#### Step B — Run the Iteration Loop
+
+```
+For iteration in range(1, total_iterations + 1):
+```
+
+Inside each iteration you perform _five sub-steps_ in exact order:
+
+##### Sub-step B.1 — Train the Current Model
+
+1. Create a fresh optimizer: `Adam(model.parameters(), lr=LEARNING_RATE)`.
+   - **You must create a new optimizer every iteration** because the parameter graph changes after pruning. Reusing an old optimizer will cause errors or momentum mismatches.
+2. Create a fresh LR scheduler if using one.
+3. Train for exactly `EPOCHS` epochs using the same training loop from Phase 3.
+4. Record the final PSNR.
+
+##### Sub-step B.2 — Evaluate and Save
+
+1. Call `reconstruct_image()` to generate the network's current painting.
+2. Save the image with a descriptive filename:
+   ```
+   outputs/{ticket_type}/iter_{iteration:02d}_remaining_{remaining_pct:.1f}pct.png
+   ```
+   For example: `outputs/winner/iter_05_remaining_32.8pct.png`
+3. Log the result to `logs/experiment_log.csv`:
+   ```csv
+   ticket_type, iteration, remaining_pct, psnr_db
+   winner, 5, 32.8, 31.45
+   ```
+
+##### Sub-step B.3 — Apply Pruning
+
+1. Call your pruning function (Winner, Random, or Loser) on the trained model.
+2. This creates/updates the `weight_mask` buffers on each layer.
+3. After pruning, call `compute_sparsity()` to verify the actual sparsity matches your expected schedule.
+
+##### Sub-step B.4 — Rewind Weights to Initialization
+
+This is the **Lottery Ticket Hypothesis rewind step** and is the most technically delicate part of the entire project.
+
+1. **Load the initial weights** from disk or from your in-memory copy:
+   ```python
+   initial_weights = torch.load(initial_weights_path)
+   ```
+
+2. **For each pruned layer in the model**, you must:
+   - Access the current mask: `mask = layer.weight_mask`
+   - Access the initial weight for this layer from the loaded state dict.
+   - Overwrite the layer's `weight_orig` with the initial weight:
+     ```python
+     layer.weight_orig.data = initial_weights[layer_name + '.weight'] * mask
+     ```
+   - **Do the same for biases** if they exist:
+     ```python
+     layer.bias.data = initial_weights[layer_name + '.bias']
+     ```
+     (Biases are typically not pruned, so just copy them directly.)
+
+3. **Why `weight_orig` and not `weight`?** Because after pruning, `weight` is a computed property (`weight_orig * weight_mask`). You must write to `weight_orig`.
+
+4. **Why multiply by `mask`?** The initial weight values for pruned positions don't matter (they'll be zeroed by the mask during forward pass), but explicitly zeroing them keeps the state clean and prevents any numerical issues.
+
+> **⚠️ Common mistake:** Forgetting to match the layer names between the saved `state_dict` keys and the current model's layer names. After pruning, PyTorch renames `weight` to `weight_orig`. So the key in `initial_weights` might be `net.0.linear.weight`, but in the pruned model, you need to access `net[0].linear.weight_orig`. Handle this name mapping carefully.
+
+> **Alternative approach (simpler but equivalent):** Instead of manually iterating layers, you can:
+> 1. Create a new unpruned model.
+> 2. Load initial weights into it.
+> 3. Copy the masks from the pruned model to the new model.
+> 4. Apply `prune.custom_from_mask` for each layer using the saved masks.
+>
+> This is more code but less error-prone because you don't need to deal with name mismatches.
+
+##### Sub-step B.5 — Loop Continuation Check
+
+1. Call `compute_sparsity()` to get the current sparsity level.
+2. If `remaining_percentage <= TARGET_SPARSITY`, break the loop.
+3. Otherwise, continue to the next iteration (go back to B.1 — train again with the rewound, pruned weights).
+
+### 5.3 — Running All Three Pipelines
+
+Execute the pipeline three times:
+
+```python
+# 1. Winning Tickets (IMP — prune smallest)
+run_pruning_pipeline("winner", prune_winning_ticket, ...)
+
+# 2. Random Tickets (Random pruning — control group)
+run_pruning_pipeline("random", prune_random_ticket, ...)
+
+# 3. Losing Tickets (Reverse IMP — prune largest)
+run_pruning_pipeline("loser", prune_losing_ticket, ...)
+```
+
+> **Time estimate:** For a 256×256 image with 1000 epochs and ~18 pruning iterations, each pipeline takes roughly 18,000 total training epochs. On a modern GPU (RTX 3060 or better), each pipeline should complete in **1–3 hours**. Total for all three: **3–9 hours**. Plan accordingly — start this overnight if needed.
+
+> **Tip:** Run the Winning Ticket pipeline first. If the results look wrong (no clear winning ticket), there is a bug in your rewinding logic. Fix it before burning GPU hours on the other two pipelines.
+
+### 5.4 — Intermediate Checkpoints (Insurance)
+
+At the end of each pruning iteration, save:
+
+1. The model's full state (`state_dict`, including masks): `checkpoints/{ticket_type}_iter_{k}.pth`.
+2. The masks alone (for debugging): extract `weight_mask` from each layer and save as a dictionary.
+
+This way, if training crashes at iteration 15 of 18, you can resume from the last checkpoint instead of starting over.
+
+### 5.5 — Special Considerations for the Losing Ticket Pipeline
+
+The Losing Ticket pipeline has unique challenges:
+
+1. **Expect catastrophic collapse.** After removing the most important weights, the network will likely produce garbage. **This is expected and is the entire point.** The garbage _is_ the result.
+
+2. **PSNR will plummet.** You may see PSNR drop below 10 dB. This is fine.
+
+3. **Training may become unstable.** With only the weakest weights remaining, gradients can explode or vanish. If you see `NaN` losses:
+   - Reduce the learning rate by 10× for this pipeline only (e.g., `1e-5`).
+   - Add gradient clipping: `torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)`.
+   - If it still fails, that _is_ the result — the losing ticket cannot learn.
+
+4. **The visual output is the star.** The abstract, glitchy, broken images that losing tickets produce are the most visually striking part of the experiment. Save them at high resolution.
+
+---
+
+## Phase 6 — Extraction, Visualization & Assembly
+
+Once all three pipelines have finished, you process and visualize the results to tell the story.
+
+**File:** `src/visualize.py`
+
+### 6.1 — PSNR Convergence Curves
+
+Create a line chart that mathematically proves the Lottery Ticket Hypothesis holds for INRs.
+
+1. **Load `experiment_log.csv`** into a dictionary or pandas DataFrame.
+
+2. **X-axis:** "Remaining Weights (%)" — decreasing from 100% to ~2%. Use a logarithmic scale for the x-axis because the sparsity increases exponentially.
+
+3. **Y-axis:** "PSNR (dB)" — the reconstruction quality metric.
+
+4. **Plot three lines:**
+   - 🟢 **Winning Ticket** (green, solid line): Should stay high (near the dense baseline) for a remarkably long time before eventually declining.
+   - 🔵 **Random Ticket** (blue, dashed line): Should decline steadily and monotonically.
+   - 🔴 **Losing Ticket** (red, dotted line): Should crash early and dramatically.
+
+5. **Add a horizontal reference line** at the dense baseline PSNR level, labeled "Dense Baseline."
+
+6. **Add a vertical reference line** at the "critical sparsity" — the point where the Winning Ticket finally starts to diverge from the baseline. This is a key finding of the experiment.
+
+7. **Styling:**
+   - Title: "Lottery Tickets in a SIREN: PSNR vs. Network Sparsity"
+   - Legend: Clear labels for all three lines.
+   - Grid: Light grid for readability.
+   - Font: Use a clean sans-serif font (e.g., "DejaVu Sans" or similar).
+
+8. **Save to:** `outputs/plots/psnr_vs_sparsity.png` at 300 DPI.
+
+### 6.2 — The Degradation Timeline (Per-Ticket-Type Image Grids)
+
+For each ticket type, create a horizontal strip showing how the image degrades as you remove more weights.
+
+1. **Select key sparsity checkpoints.** Don't show all 18 iterations — pick 6–8 visually meaningful ones:
+   ```
+   100%, 80%, 50%, 20%, 10%, 5%, 3%, 2%
+   ```
+
+2. **Load the saved images** from the corresponding `outputs/{ticket_type}/` directory.
+
+3. **Stitch them horizontally** into a single wide image. Use matplotlib's `subplot` or PIL's `Image.new` to create a grid.
+
+4. **Label each sub-image** with its remaining weight percentage. Use small, clean text overlaid on or above each image.
+
+5. **Create three grids** — one for Winners, one for Random, one for Losers.
+
+6. **Save to:**
+   - `outputs/plots/timeline_winner.png`
+   - `outputs/plots/timeline_random.png`
+   - `outputs/plots/timeline_loser.png`
+
+### 6.3 — The Side-by-Side "Showdown" Grid
+
+This is the **hero image** of the entire project — the image that will make people stop scrolling.
+
+1. **Pick one extreme sparsity level** where the differences are most dramatic (e.g., 5% or 3% remaining weights).
+
+2. **Load the three images** (Winner, Random, Loser) at that exact sparsity level.
+
+3. **Create a 1×4 grid** (or 2×2):
+   - **Column 1:** The original target image, labeled "Original."
+   - **Column 2:** The Winning Ticket reconstruction, labeled "Winning Ticket (5%)."
+   - **Column 3:** The Random Ticket reconstruction, labeled "Random Ticket (5%)."
+   - **Column 4:** The Losing Ticket reconstruction, labeled "Losing Ticket (5%)."
+
+4. **Styling:** Use a dark background (#1a1a2e or similar) with white text labels. Add thin white borders between images. This dark theme makes the images pop and looks professional.
+
+5. **Save to:** `outputs/plots/showdown_grid.png` at high resolution (at least 2000px wide).
+
+### 6.4 — The Degradation Animation (GIF / MP4)
+
+Create a smooth animation showing the image dissolving as the network is pruned.
+
+1. **Collect all saved images** for a given ticket type, ordered by decreasing remaining weight percentage.
+
+2. **Using `imageio`:**
+   ```python
+   images = [imageio.imread(path) for path in sorted_image_paths]
+   imageio.mimsave('outputs/plots/degradation_winner.gif', images, duration=0.5)
+   ```
+
+3. **Duration per frame:** 0.3–0.5 seconds. Slow enough to appreciate each step, fast enough to see the progression.
+
+4. **Create three GIFs:**
+   - `outputs/plots/degradation_winner.gif`
+   - `outputs/plots/degradation_random.gif`
+   - `outputs/plots/degradation_loser.gif`
+
+5. **Optional enhancement:** Add a frame counter or sparsity percentage as text burned into each frame using PIL's `ImageDraw`.
+
+### 6.5 — Difference Maps (Optional but Impressive)
+
+Show _where_ the network fails by visualizing the pixel-by-pixel error.
+
+1. **For a given reconstruction:** Compute `|original - reconstruction|` per pixel.
+2. **Normalize** this difference to `[0, 255]` for visibility.
+3. **Apply a colormap** (e.g., matplotlib's `'hot'` or `'inferno'`) to make errors pop.
+4. **Interpretation:** Bright areas = large error = the network can't reconstruct this region. Dark areas = accurate.
+5. This shows whether the network loses high-frequency details first (edges, textures) or low-frequency ones (broad color regions).
+
+### 6.6 — Spectral Analysis (Optional, Advanced)
+
+For readers who want deeper insight into _why_ the images degrade the way they do:
+
+1. **Compute the 2D Fourier Transform** of each reconstruction using `torch.fft.fft2`.
+2. **Compute the magnitude spectrum** and shift zero-frequency to center with `torch.fft.fftshift`.
+3. **Visualize** the frequency spectrum as a log-scale heatmap.
+4. **Compare spectra** at different sparsity levels: The Winning Ticket should preserve high-frequency content longer. The Losing Ticket should lose high frequencies first and fastest.
+
+### 6.7 — Final Summary Table
+
+Generate a clean markdown or CSV table summarizing the key results at selected sparsity levels:
+
+| Remaining % | Winner PSNR (dB) | Random PSNR (dB) | Loser PSNR (dB) |
+|---|---|---|---|
+| 100% (Dense) | 38.2 | 38.2 | 38.2 |
+| 50% | 37.8 | 33.1 | 18.5 |
+| 20% | 35.2 | 26.7 | 12.3 |
+| 10% | 31.1 | 20.4 | 9.8 |
+| 5% | 27.5 | 15.2 | 8.1 |
+| 3% | 22.3 | 12.8 | 7.2 |
+
+*(These are illustrative example values — your actual results will differ.)*
+
+---
+
+## Appendix A — Common Pitfalls & Debugging Guide
+
+| # | Problem | Symptom | Root Cause | Solution |
+|---|---------|---------|-----------|----------|
+| 1 | SIREN outputs pure noise | Black/white static, ~0 dB PSNR | Wrong weight initialization | Verify `is_first` flag; check uniform distribution bounds |
+| 2 | Model trains but image is blurry | Low PSNR (< 25 dB), only broad color | `omega_0` too low | Increase to 30 or 60 |
+| 3 | Loss oscillates wildly | Loss jumps up and down | Learning rate too high | Reduce LR to 5e-5 |
+| 4 | PSNR identical for all ticket types | No difference between Winner/Random/Loser | Rewinding is broken — not loading initial weights | Verify `weight_orig` is being overwritten correctly |
+| 5 | Pruning percentages are wrong | Sparsity doesn't match expected schedule | Not accounting for already-pruned weights | Use `amount` as fraction, not absolute count |
+| 6 | `KeyError` during weight rewind | State dict key mismatch | Pruning renames `weight` to `weight_orig` | Map keys correctly between initial and pruned model |
+| 7 | `NaN` loss during Loser training | Loss becomes `nan` after a few epochs | Gradient explosion with only weak weights | Add gradient clipping; reduce LR |
+| 8 | Out of GPU memory | CUDA OOM error | Batch size too large for GPU | Reduce `BATCH_SIZE` to 4096 or smaller |
+| 9 | Images look transposed/flipped | Reconstruction is rotated 90° | Wrong `meshgrid` indexing | Use `indexing='ij'` and verify coordinate order |
+| 10 | All reconstructions look identical | Pruning has no effect | Masks not being applied | Check that `weight_mask` is registered on each layer |
+
+---
+
+## Appendix B — Expected Timeline
+
+| Phase | Estimated Time | Notes |
+|---|---|---|
+| Phase 0 (Setup) | 30 minutes | Environment, directories, config |
+| Phase 1 (Data Pipeline) | 1 hour | Dataset class + verification |
+| Phase 2 (SIREN) | 1–2 hours | Architecture + initialization debugging |
+| Phase 3 (Baseline) | 1 hour code + 10 min GPU | Training loop + verification |
+| Phase 4 (Pruning Engine) | 2–3 hours | Custom losing ticket pruning is the hardest part |
+| Phase 5 (Pipeline) | 2 hours code + 3–9 hours GPU | Three full pipelines |
+| Phase 6 (Visualization) | 2–3 hours | Plots, grids, GIFs |
+| **Total** | **~10–20 hours** | **Over 2–3 days** |
+
+---
+
+## Appendix C — Key References
+
+1. **Sitzmann, V., Martel, J.N.P., Bergman, A.W., Lindell, D.B., & Wetzstein, G.** (2020). *Implicit Neural Representations with Periodic Activation Functions.* NeurIPS 2020. — The paper that introduced SIREN.
+
+2. **Frankle, J. & Carlin, M.** (2018). *The Lottery Ticket Hypothesis: Finding Sparse, Trainable Neural Networks.* ICLR 2019. — The foundational LTH paper.
+
+3. **Frankle, J., Dziugaite, G.K., Roy, D.M., & Carlin, M.** (2020). *Linear Mode Connectivity and the Lottery Ticket Hypothesis.* ICML 2020. — Introduces "late rewinding" as an improvement to the original LTH.
+
+4. **PyTorch Pruning Tutorial.** [https://pytorch.org/tutorials/intermediate/pruning_tutorial.html](https://pytorch.org/tutorials/intermediate/pruning_tutorial.html) — Official guide to `torch.nn.utils.prune`.
+
+---
+
+> **End of Implementation Plan.** Follow each phase sequentially. Do not skip ahead. Every step exists for a reason. Good luck — the images you produce will be unlike anything you've seen before.
