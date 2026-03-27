@@ -1065,7 +1065,7 @@
       <div class="abstract-label">Abstract</div>
       <p>Implicit Neural Representations (INRs) are overparameterized by design — a feature, not a bug. But can we
         surgically remove most of their parameters and still preserve the signal they've memorized? This work applies
-        the Lottery Ticket Hypothesis to SIREN networks fitted to a single image, contrasting three pruning strategies
+        the Lottery Ticket Hypothesis to Sinusoidal Representation Networks fitted to a single image, contrasting three pruning strategies
         across 18 iterative rounds down to 1.8% of original network weight. We find that SIREN contains a remarkable
         winning ticket — a 2.3% sub-network maintaining 32.7&nbsp;dB PSNR — while the losing ticket collapses
         catastrophically to noise in just <em>two</em> pruning rounds. The mechanism is not bandwidth limitation but
@@ -1076,7 +1076,7 @@
 
     <!-- 1. Introduction -->
     <div class="section-number">01 — Introduction</div>
-    <h2 class="section-title">A Confession: I'm a 3DV Person Who Enjoys Theory</h2>
+    <h2 class="section-title">Why I Went Looking for Winning and Losing Tickets</h2>
 
     <p class="drop-cap">During my undergrad at UAB, I took the Advanced Machine Learning course taught by <strong>Andrey
         Barsky</strong>, one of the best teachers I've had the luck of learning from. The class was demanding in the
@@ -1087,7 +1087,7 @@
       <strong>Lottery Ticket Hypothesis</strong>.
     </p>
 
-    <p>Andrey introduced the LTH as a philosophical provocation: inside every large, randomly initialized
+    <p>Andrey introduced the LTH as a kind of philosophical provocation: inside every large, randomly initialized
       network, there exists a tiny sub-network that, if reset to its initial values and trained alone, can match the
       full network's performance. He showed the LTH paper's results: sparse architectures outperforming their
       dense parents with 21% of the original parameters. I just went: WOW. There was something
@@ -1099,7 +1099,9 @@
       thinking about the ideas Andrey introduced.</p>
 
     <p>In this blogpost, I wanted to share a small project that's a direct descendant of that period. Today I will try
-      to write about applying the LTH to Sinusoidal Representation Networks
+      to write about applying the LTH to Sinusoidal Representation Networks (SIRENs). Unlike standard models, SIRENs use
+      periodic sine waves instead of ReLUs to memorize continuous signals—like encoding an entire high-res image directly
+      into the network's weights.
       It's the kind of experiment you run because the question is genuinely interesting, not because there's a benchmark
       to chase. I wanted to know whether the lottery ticket phenomenon survives the shift from ReLU classification (most
       cases I have seen work on this setting) to
@@ -1108,28 +1110,31 @@
 
     <h2 class="section-title" style="margin-top:2rem;">The Overparameterization Paradox</h2>
 
-    <p>There is a strange tension at the heart of modern deep learning. We build networks far larger than they need to
-      be — and it <em>helps</em>. Overparameterization aids optimization, improves generalization, and opens basins of
+    <p>There is a tension that many of us find strange in deep learning. We build networks far larger than they need to
+      be, and it <em>helps</em>. Overparameterization makes optimization easier, improves generalization, and opens
+      basins of
       attraction that underfitted architectures could never reach. Yet the moment training ends, we are left with a
-      bloated artifact that spends most of its compute multiplying numbers by near-zero weights. This is the
-      overparameterization paradox: the redundancy that makes learning possible makes deployment expensive.</p>
+      bloated network that spends most of its compute multiplying numbers by near-zero weights. So there it is, the
+      overparameterization paradox: the redundancy that facilitates learning makes deployment expensive/unaffordable.
+    </p>
 
     <p>For most computer vision tasks, this is merely an engineering inconvenience. But for <strong>Implicit Neural
-        Representations (INRs)</strong> — networks that replace discrete data arrays with continuous learned functions —
+        Representations (INRs)</strong> (networks that replace discrete data arrays with continuous learned functions)
       overparameterization is existential. An INR representing a 256×256 image stores roughly 262,000 floats. The
       uncompressed image itself is 196,608 floats. The network is <em>already larger than what it models</em>. If we
-      cannot compress INRs, their promise of "infinite-resolution, differentiable storage" rings hollow in any real
-      deployment.</p>
+      cannot compress INRs, their promise of "infinite-resolution, differentiable storage" becomes unattainable in any
+      real deployment.</p>
 
-    <p>The question I wanted to answer: <strong>does the Lottery Ticket Hypothesis extend to SIREN?</strong> And if it
+    <p>All in all, the question I wanted to answer is: <strong>does the Lottery Ticket Hypothesis extend to SIREN?</strong> And if it
       does, what makes a neuron "load-bearing" in a network whose architecture is built around periodic functions rather
       than rectified linear units?</p>
 
-    <p>The answer turned out to be simultaneously reassuring and disturbing — reassuring because yes, winning tickets
-      exist and they're remarkably small; disturbing because the <em>losing</em> tickets don't just degrade — they
+    <p>The answer turned out to be simultaneously reassuring and disturbing. Reassuring because yes, winning tickets
+      exist and they're remarkably small; disturbing because not only do the <em>losing</em> tickets degrade, but they
       undergo instantaneous frequency collapse, a failure mode so distinctive it tells us something fundamental about
-      how SIRENs encode information. This is one of those results where you check for bugs twice before accepting it as
-      real.</p>
+      how SIRENs encode information. Yes, I also thought I made a mistake or had a bug in the implementation, but there
+      wasn't.</p>
+
 
     <!-- 2. Background -->
     <div class="section-number">02 — Background</div>
@@ -1145,8 +1150,8 @@
     <p>Sitzmann et al. (2020) proposed an elegant solution: replace ReLU with $\sin(\omega_0 \cdot)$. The resulting
       <strong>Sinusoidal Representation Network (SIREN)</strong> has no spectral bias because every layer is already a
       Fourier basis function. Through composition of sine functions, the network can represent arbitrarily complex
-      spectra. The key insight — stated in the paper but often underappreciated — is that <em>any derivative of a SIREN
-        is itself a SIREN</em>, since $\frac{d}{dx}\sin(x) = \cos(x)$ is a phase-shifted sine. This makes SIRENs
+      spectra. The key insight (stated in the paper but often underappreciated) is that <em>any derivative of a SIREN
+      is itself a SIREN</em>, since $\frac{d}{dx}\sin(x) = \cos(x)$ is a phase-shifted sine. This makes SIRENs
       uniquely suited for physics-based applications where the gradient field is as important as the function itself.
     </p>
 
@@ -1791,8 +1796,18 @@
               font: { family: 'JetBrains Mono', size: 12 },
               callback: function (value, index, values) {
                 // Format ticks as 10^2, 10^1 etc to match the image
-                if (value === 100) return '10²';
-                if (value === 10) return '10¹';
+                if (value === 100) return '100';
+                if (value === 80) return '80';
+                if (value === 60) return '60';
+                if (value === 50) return '50';
+                if (value === 40) return '40';
+                if (value === 30) return '30';
+                if (value === 20) return '20';
+                if (value === 10) return '10';
+                if (value === 5) return '5';
+                if (value === 2) return '2';
+
+
                 return null;
               }
             },
