@@ -985,6 +985,86 @@
     .sine-animated {
       animation: sineScroll 20s linear infinite;
     }
+
+    .sine-visualization {
+      position: relative;
+      width: 100%;
+      height: 260px;
+      margin: 4rem auto 1rem;
+      background: linear-gradient(180deg, rgba(12, 13, 17, 0) 0%, rgba(17, 19, 24, 1) 20%, rgba(17, 19, 24, 1) 80%, rgba(12, 13, 17, 0) 100%);
+      border-top: 1px solid rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sine-visualization svg {
+      filter: blur(0.5px);
+    }
+
+    .sine-path {
+      fill-opacity: 0.1;
+      stroke-width: 0.5px;
+      mix-blend-mode: screen;
+      transform-origin: center;
+      animation: sineFlow 30s linear infinite;
+    }
+
+    .base-wave {
+      fill: #e8b84b;
+      stroke: rgba(232, 184, 75, 0.5);
+      opacity: 0.4;
+      animation-duration: 40s;
+    }
+
+    .wave-1 {
+      fill: #4be8c8;
+      stroke: rgba(75, 232, 200, 0.5);
+      animation-direction: reverse;
+      animation-duration: 25s;
+    }
+
+    .wave-2 {
+      fill: #6b9fff;
+      stroke: rgba(107, 159, 255, 0.5);
+      animation-duration: 15s;
+    }
+
+    .sine-line {
+      fill: none;
+      stroke: #00ffff;
+      /* The resulting line - Cyan */
+      stroke-width: 2.5px;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.6));
+      mix-blend-mode: screen;
+    }
+
+    .viz-label {
+      margin-top: 1rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.65rem;
+      color: rgba(122, 128, 153, 0.6);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    @keyframes sineFlow {
+      0% {
+        transform: scaleX(1) translateX(0%);
+      }
+
+      50% {
+        transform: scaleX(1.05) translateX(3%);
+      }
+
+      100% {
+        transform: scaleX(1) translateX(0%);
+      }
+    }
   </style>
 </head>
 
@@ -1100,15 +1180,7 @@
       thinking about the ideas Andrey introduced.</p>
 
     <p>In this blogpost, I wanted to share a small project that's a direct descendant of that period. Today I will try
-      to write about applying the LTH to Sinusoidal Representation Networks (SIRENs). Unlike standard models, SIRENs use
-      periodic sine waves instead of ReLUs to memorize continuous signals—like encoding an entire high-res image
-      directly
-      into the network's weights.
-      It's the kind of experiment you run because the question is genuinely interesting, not because there's a benchmark
-      to chase. I wanted to know whether the lottery ticket phenomenon survives the shift from ReLU classification (most
-      cases I have seen work on this setting) to
-      periodic-activation regression; and if so, what role weight magnitude plays in a network that encodes signals
-      through sine waves rather than piecewise linear boundaries.</p>
+      to write about my experience applying the LTH to Sinusoidal Representation Networks (SIRENs).</p>
 
     <h2 class="section-title" style="margin-top:2rem;">The Overparameterization Paradox</h2>
 
@@ -1142,6 +1214,20 @@
       suffer an instantaneous frequency collapse, a failure mode so distinctive it tells us something fundamental about
       how SIRENs encode information. Yes, I also thought I made a mistake or had a bug in the implementation, but there
       wasn't.</p>
+
+    <div class="sine-visualization" aria-hidden="true">
+      <svg width="100%" height="220" viewBox="0 0 1000 220" preserveAspectRatio="none">
+        <path class="sine-path base-wave"
+          d="M0,110 C 125,10, 375,10, 500,110 C 625,210, 875,210, 1000,110 L 1000,220 L 0,220 Z" />
+        <path class="sine-path overlay-wave wave-1"
+          d="M0,110 C 125,210, 375,10, 500,110 C 625,210, 875,10, 1000,110 L 1000,220 L 0,220 Z" />
+        <path class="sine-path overlay-wave wave-2"
+          d="M0,110 C 125,10, 125,210, 250,110 C 375,10, 375,210, 500,110 C 625,10, 625,210, 750,110 C 875,10, 875,210, 1000,110 L 1000,220 L 0,220 Z" />
+        <path class="sine-line result-line"
+          d="M0,110 Q 62.5,10 125,110 T 250,110 T 375,110 T 500,110 T 625,110 T 750,110 T 875,110 T 1000,110" />
+      </svg>
+      <div class="viz-label">Superposition of periodic basis functions (SIREN construction)</div>
+    </div>
 
 
     <!-- 2. Background -->
