@@ -986,10 +986,12 @@
       animation: sineScroll 20s linear infinite;
     }
 
+    /* ─── Sine Wave Superposition Viz ────────── */
     .sine-visualization {
       position: relative;
       width: 100%;
       height: 260px;
+      /* Reduced slightly to match the monitor context image */
       margin: 4rem auto 1rem;
       background: linear-gradient(180deg, rgba(12, 13, 17, 0) 0%, rgba(17, 19, 24, 1) 20%, rgba(17, 19, 24, 1) 80%, rgba(12, 13, 17, 0) 100%);
       border-top: 1px solid rgba(255, 255, 255, 0.03);
@@ -1009,38 +1011,77 @@
       fill-opacity: 0.1;
       stroke-width: 0.5px;
       mix-blend-mode: screen;
+      /* transform-origin is important for complex movements */
       transform-origin: center;
-      animation: sineFlow 30s linear infinite;
+    }
+
+    /*  Faster horizontal translation with different directions  */
+    @keyframes sineTranslate {
+      0% {
+        transform: translateX(0%);
+      }
+
+      100% {
+        transform: translateX(100%);
+      }
+
+      /* Scrolls across one full cycle */
     }
 
     .base-wave {
       fill: #e8b84b;
+      /* Gold */
       stroke: rgba(232, 184, 75, 0.5);
       opacity: 0.4;
-      animation-duration: 40s;
+      /* Define specific fast forward motion: [keyframe] [duration] [easing] [count] */
+      animation: sineTranslate 12s linear infinite;
+      /* Slow forward */
     }
 
     .wave-1 {
       fill: #4be8c8;
+      /* Teal */
       stroke: rgba(75, 232, 200, 0.5);
-      animation-direction: reverse;
-      animation-duration: 25s;
+      /* Reversed direction and faster speed for complexity */
+      animation: sineTranslate 8s linear infinite reverse;
+      /* Medium reverse */
     }
 
     .wave-2 {
       fill: #6b9fff;
+      /* Blue */
       stroke: rgba(107, 159, 255, 0.5);
-      animation-duration: 15s;
+      /* Fastest speed forward */
+      animation: sineTranslate 6s linear infinite;
+      /* Fast forward */
     }
 
+    /* Keep the Cyan result line throbbing, not scrolling, to show it is the result */
     .sine-line {
       fill: none;
       stroke: #00ffff;
-      /* The resulting line - Cyan */
+      /* Glowing result line - Cyan */
       stroke-width: 2.5px;
       stroke-linecap: round;
       filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.6));
       mix-blend-mode: screen;
+      transform-origin: center;
+      /* Keep the original throb effect for focus, but speed it up */
+      animation: sineLineThrob 3s ease-in-out infinite;
+    }
+
+    @keyframes sineLineThrob {
+
+      0%,
+      100% {
+        transform: scaleX(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scaleX(1.02);
+        opacity: 0.8;
+      }
     }
 
     .viz-label {
@@ -1050,20 +1091,6 @@
       color: rgba(122, 128, 153, 0.6);
       letter-spacing: 0.2em;
       text-transform: uppercase;
-    }
-
-    @keyframes sineFlow {
-      0% {
-        transform: scaleX(1) translateX(0%);
-      }
-
-      50% {
-        transform: scaleX(1.05) translateX(3%);
-      }
-
-      100% {
-        transform: scaleX(1) translateX(0%);
-      }
     }
   </style>
 </head>
