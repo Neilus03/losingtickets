@@ -15,9 +15,9 @@ def main():
     set_seed(config.SEED)
     device = config.DEVICE
     
-    print("Loading dataset...")
-    dataloader, coords_full = load_image_dataset(config.IMAGE_PATH, config.IMAGE_SIZE, config.BATCH_SIZE)
-    coords_full = coords_full.to(device)
+    coords, pixels = load_image_dataset(config.IMAGE_PATH, config.IMAGE_SIZE)
+    coords = coords.to(device)
+    pixels = pixels.to(device)
     
     # Phase 3: Baseline Run & State Capture
     print("Initializing Dense SIREN model...")
@@ -30,8 +30,12 @@ def main():
     ).to(device)
     
     initial_weights_path = os.path.join("checkpoints", "initial_weights.pth")
-    torch.save(model.state_dict(), initial_weights_path)
-    print(f"Saved initial weights to {initial_weights_path}")
+    if not os.path.exists(initial_weights_path):
+        torch.save(model.state_dict(), initial_weights_path)
+        print(f"Saved initial weights to {initial_weights_path}")
+    else:
+        model.load_state_dict(torch.load(initial_weights_path, map_location=device))
+        print(f"Restored existing initial weights from {initial_weights_path}")
     
     # We train the baseline once
     baseline_path = os.path.join("outputs", "baseline", "dense_reconstruction.png")
@@ -42,16 +46,15 @@ def main():
         
         psnr_val = train_model(
             model=model,
-            dataloader=dataloader,
+            coords=coords,
+            pixels=pixels,
             optimizer=optimizer,
             loss_fn=loss_fn,
             epochs=config.EPOCHS,
-            device=device,
-            coords_full=coords_full,
-            log_every=100
+            device=device
         )
         
-        img_array = reconstruct_image(model, coords_full, config.IMAGE_SIZE)
+        img_array = reconstruct_image(model, coords, config.IMAGE_SIZE)
         Image.fromarray(img_array).save(baseline_path)
         print(f"Dense Baseline Training Complete. PSNR: {psnr_val:.2f} dB")
         
@@ -60,21 +63,8 @@ def main():
         print("Baseline already exists. Skipping baseline training.")
         
     # Phase 5: Run Iterative Pruning
-    # Winner
     run_pruning_pipeline(
-        "winner", prune_winning_ticket, initial_weights_path, config, dataloader, coords_full, 
-        lambda: SIREN(hidden_features=config.HIDDEN_FEATURES, hidden_layers=config.HIDDEN_LAYERS, omega_0=config.OMEGA_0)
-    )
-    
-    # Random
-    run_pruning_pipeline(
-        "random", prune_random_ticket, initial_weights_path, config, dataloader, coords_full,
-        lambda: SIREN(hidden_features=config.HIDDEN_FEATURES, hidden_layers=config.HIDDEN_LAYERS, omega_0=config.OMEGA_0)
-    )
-    
-    # Loser
-    run_pruning_pipeline(
-        "loser", prune_losing_ticket, initial_weights_path, config, dataloader, coords_full,
+        "loser", prune_losing_ticket, initial_weights_path, config, coords, pixels,
         lambda: SIREN(hidden_features=config.HIDDEN_FEATURES, hidden_layers=config.HIDDEN_LAYERS, omega_0=config.OMEGA_0)
     )
 

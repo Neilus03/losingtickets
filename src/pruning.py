@@ -75,7 +75,10 @@ def prune_losing_ticket(model, prune_rate):
         
     # Get the n_keep smallest value -> this is our threshold
     # Everything > threshold gets pruned.
-    threshold = torch.kthvalue(all_active_weights, n_keep).values.item()
+    # FIX: GPU torch.kthvalue freezes if elements have millions of identical duplicates (zeros).
+    # Move exactly this comparison to CPU sorting to mathematically guarantee it finishes instantly.
+    sorted_vals, _ = torch.sort(all_active_weights.cpu())
+    threshold = sorted_vals[min(n_keep, len(sorted_vals)-1)].item()
     
     for module in model.modules():
         if isinstance(module, nn.Linear):

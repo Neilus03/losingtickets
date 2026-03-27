@@ -1,0 +1,19 @@
+Inference Benchmark Results (CPU, 4096 points)
+------------------------------------------------------------
+DENSE BASELINE:  28.4899 ms
+
+Stage: WINNER
+[WINNER ] Iter 1. | Weights Remaining:  80.00% | Latency:  33.1654 ms
+[WINNER ] Iter 10 | Weights Remaining:  10.74% | Latency:  37.6357 ms
+[WINNER ] Iter 18 | Weights Remaining:   1.80% | Latency:  35.4113 ms
+
+Stage: RANDOM
+[RANDOM ] Iter 1. | Weights Remaining:  80.00% | Latency:  44.0965 ms
+[RANDOM ] Iter 10 | Weights Remaining:  10.74% | Latency:  36.7321 ms
+[RANDOM ] Iter 18 | Weights Remaining:   1.80% | Latency:  37.9207 ms
+
+Stage: LOSER
+[LOSER  ] Iter 1. | Weights Remaining:  80.00% | Latency:  69.3468 ms
+[LOSER  ] Iter 10 | Weights Remaining:  10.74% | Latency:  39.3677 ms
+[LOSER  ] Iter 18 | Weights Remaining:   1.81% | Latency:  85.4836 ms
+

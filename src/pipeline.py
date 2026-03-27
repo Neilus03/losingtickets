@@ -1,6 +1,8 @@
 import torch
 import torch.optim as optim
 import copy
+import os
+import math
 from config import LEARNING_RATE, EPOCHS, TARGET_SPARSITY
 from src.train import train_model
 from src.utils import reconstruct_image, PSNR
@@ -11,8 +13,8 @@ def run_pruning_pipeline(
     prune_function,
     initial_weights_path,
     config,
-    dataloader,
-    coords_full,
+    coords,
+    pixels,
     model_class
 ):
     print(f"\n=== Starting Pipeline: {ticket_type.upper()} ===")
@@ -32,7 +34,8 @@ def run_pruning_pipeline(
     model = model_class()
     model.load_state_dict(torch.load(initial_weights_path))
     model.to(device)
-    coords_full = coords_full.to(device)
+    coords = coords.to(device)
+    pixels = pixels.to(device)
     image_size = config.IMAGE_SIZE
 
     # Step B: Iteration Loop
@@ -45,23 +48,38 @@ def run_pruning_pipeline(
     # We assume iteration 0 is the unpruned baseline.
     
     current_sparsity = 0.0
+    start_iter = 1
+    
+    # Auto-Resume Logic
+    last_iter = 0
     for iteration in range(1, total_iterations + 1):
+        if os.path.exists(os.path.join("checkpoints", f"{ticket_type}_iter_{iteration}.pth")):
+            last_iter = iteration
+            
+    if last_iter > 0:
+        print(f"Discovered checkpoint for {ticket_type} Iteration {last_iter}. Restoring directly to GPU...")
+        start_iter = last_iter + 1
+        
+        # 1. We must structurally prepare the model by adding the PyTorch pruning hooks so the state_dict matches!
+        import torch.nn.utils.prune as prune
+        import torch.nn as nn
+        for name, module in model.named_modules():
+            if isinstance(module, nn.Linear):
+                prune.custom_from_mask(module, name='weight', mask=torch.ones_like(module.weight))
+                
+        # 2. Flawlessly load all weights AND the exact pruning mask maps onto the GPU
+        model.load_state_dict(torch.load(os.path.join("checkpoints", f"{ticket_type}_iter_{last_iter}.pth"), map_location=device))
+        
+        from src.pruning import compute_sparsity
+        current_sparsity = compute_sparsity(model)
+        
+        if last_iter == total_iterations:
+            print(f"{ticket_type} pipeline entirely completed from disk.")
+            return
+            
+    for iteration in range(start_iter, total_iterations + 1):
         remaining_pct = (1.0 - current_sparsity) * 100
         print(f"\n--- {ticket_type} Iteration {iteration}/{total_iterations} | Remaining: {remaining_pct:.1f}% ---")
-        
-        # B.3: Apply Pruning (we prune FIRST before training so we train a sparse network)
-        # Wait! The plan says: 
-        # B.1 Train
-        # B.2 Evaluate
-        # B.3 Prune
-        # B.4 Rewind
-        # But for iteration 1, the model is dense. We need to train it once, then prune, then rewind.
-        # Actually, let's follow the standard LTH loop:
-        # Loop:
-        # 1. Train sparse network
-        # 2. Evaluate and Save Image
-        # 3. Apply Pruning (generates new masks)
-        # 4. Rewind Weights (using new masks)
         
         optimizer = optim.Adam(model.parameters(), lr=config.LEARNING_RATE)
         loss_fn = torch.nn.MSELoss()
@@ -69,17 +87,16 @@ def run_pruning_pipeline(
         # B.1 Train
         psnr_val = train_model(
             model=model,
-            dataloader=dataloader,
+            coords=coords,
+            pixels=pixels,
             optimizer=optimizer,
             loss_fn=loss_fn,
             epochs=config.EPOCHS,
-            device=device,
-            coords_full=coords_full,
-            log_every=100
+            device=device
         )
         
         # B.2 Evaluate & Save
-        img_array = reconstruct_image(model, coords_full, image_size)
+        img_array = reconstruct_image(model, coords, image_size)
         img_path = os.path.join("outputs", ticket_type, f"iter_{iteration:02d}_remaining_{remaining_pct:.1f}pct.png")
         Image.fromarray(img_array).save(img_path)
         
