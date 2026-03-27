@@ -1065,7 +1065,8 @@
       <div class="abstract-label">Abstract</div>
       <p>Implicit Neural Representations (INRs) are overparameterized by design — a feature, not a bug. But can we
         surgically remove most of their parameters and still preserve the signal they've memorized? This work applies
-        the Lottery Ticket Hypothesis to Sinusoidal Representation Networks fitted to a single image, contrasting three pruning strategies
+        the Lottery Ticket Hypothesis to Sinusoidal Representation Networks fitted to a single image, contrasting three
+        pruning strategies
         across 18 iterative rounds down to 1.8% of original network weight. We find that SIREN contains a remarkable
         winning ticket — a 2.3% sub-network maintaining 32.7&nbsp;dB PSNR — while the losing ticket collapses
         catastrophically to noise in just <em>two</em> pruning rounds. The mechanism is not bandwidth limitation but
@@ -1100,7 +1101,8 @@
 
     <p>In this blogpost, I wanted to share a small project that's a direct descendant of that period. Today I will try
       to write about applying the LTH to Sinusoidal Representation Networks (SIRENs). Unlike standard models, SIRENs use
-      periodic sine waves instead of ReLUs to memorize continuous signals—like encoding an entire high-res image directly
+      periodic sine waves instead of ReLUs to memorize continuous signals—like encoding an entire high-res image
+      directly
       into the network's weights.
       It's the kind of experiment you run because the question is genuinely interesting, not because there's a benchmark
       to chase. I wanted to know whether the lottery ticket phenomenon survives the shift from ReLU classification (most
@@ -1125,11 +1127,17 @@
       cannot compress INRs, their promise of "infinite-resolution, differentiable storage" becomes unattainable in any
       real deployment.</p>
 
-    <p>All in all, the question I wanted to answer is: <strong>does the Lottery Ticket Hypothesis extend to SIREN?</strong> And if it
-      does, what makes a neuron "load-bearing" in a network whose architecture is built around periodic functions rather
-      than rectified linear units?</p>
+    <p>But beyond just solving the compression problem, applying the Lottery Ticket Hypothesis to SIRENs presents a
+      cool architectural puzzle. In standard ReLU networks (the usual testing ground for the LTH), a weight acts
+      mostly as a volume knob, shifting a linear boundary. But SIRENs wrap their weights inside sine waves ($\sin(\omega
+      x + b)$). This means <strong>a weight's magnitude directly determines its frequency</strong>. Magnitude pruning
+      here isn't just removing "unimportant" connections, it is a literal form of frequency filtering.</p>
 
-    <p>The answer turned out to be simultaneously reassuring and disturbing. Reassuring because yes, winning tickets
+    <p>All in all, this blogpost boils down to one question: <strong>does the Lottery Ticket Hypothesis hold up for
+        SIRENs?</strong> And if it does, what actually makes a neuron "load-bearing" in a network whose architecture
+      is built around periodic functions rather than rectified linear units?</p>
+
+    <p>The answer turned out to be reassuring and disturbing at the same time. Reassuring because yes, winning tickets
       exist and they're remarkably small; disturbing because not only do the <em>losing</em> tickets degrade, but they
       undergo instantaneous frequency collapse, a failure mode so distinctive it tells us something fundamental about
       how SIRENs encode information. Yes, I also thought I made a mistake or had a bug in the implementation, but there
@@ -1151,7 +1159,7 @@
       <strong>Sinusoidal Representation Network (SIREN)</strong> has no spectral bias because every layer is already a
       Fourier basis function. Through composition of sine functions, the network can represent arbitrarily complex
       spectra. The key insight (stated in the paper but often underappreciated) is that <em>any derivative of a SIREN
-      is itself a SIREN</em>, since $\frac{d}{dx}\sin(x) = \cos(x)$ is a phase-shifted sine. This makes SIRENs
+        is itself a SIREN</em>, since $\frac{d}{dx}\sin(x) = \cos(x)$ is a phase-shifted sine. This makes SIRENs
       uniquely suited for physics-based applications where the gradient field is as important as the function itself.
     </p>
 
