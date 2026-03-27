@@ -986,12 +986,11 @@
       animation: sineScroll 20s linear infinite;
     }
 
-    /* ─── Sine Wave Superposition Viz ────────── */
+    /* ─── Sine Wave Superposition Viz (Flawless Infinite Scroll) ────────── */
     .sine-visualization {
       position: relative;
       width: 100%;
       height: 260px;
-      /* Reduced slightly to match the monitor context image */
       margin: 4rem auto 1rem;
       background: linear-gradient(180deg, rgba(12, 13, 17, 0) 0%, rgba(17, 19, 24, 1) 20%, rgba(17, 19, 24, 1) 80%, rgba(12, 13, 17, 0) 100%);
       border-top: 1px solid rgba(255, 255, 255, 0.03);
@@ -1011,77 +1010,58 @@
       fill-opacity: 0.1;
       stroke-width: 0.5px;
       mix-blend-mode: screen;
-      /* transform-origin is important for complex movements */
-      transform-origin: center;
     }
 
-    /*  Faster horizontal translation with different directions  */
-    @keyframes sineTranslate {
+    /* Move left by exactly 1/3 of the total 3000px width (1000px) */
+    @keyframes moveLeft {
       0% {
-        transform: translateX(0%);
+        transform: translateX(0);
       }
 
       100% {
-        transform: translateX(100%);
+        transform: translateX(-33.3333%);
+      }
+    }
+
+    /* Move right by exactly 1/3 of the total width */
+    @keyframes moveRight {
+      0% {
+        transform: translateX(0);
       }
 
-      /* Scrolls across one full cycle */
+      100% {
+        transform: translateX(33.3333%);
+      }
     }
 
     .base-wave {
       fill: #e8b84b;
-      /* Gold */
       stroke: rgba(232, 184, 75, 0.5);
       opacity: 0.4;
-      /* Define specific fast forward motion: [keyframe] [duration] [easing] [count] */
-      animation: sineTranslate 12s linear infinite;
-      /* Slow forward */
+      animation: moveLeft 12s linear infinite;
     }
 
     .wave-1 {
       fill: #4be8c8;
-      /* Teal */
       stroke: rgba(75, 232, 200, 0.5);
-      /* Reversed direction and faster speed for complexity */
-      animation: sineTranslate 8s linear infinite reverse;
-      /* Medium reverse */
+      animation: moveRight 8s linear infinite;
     }
 
     .wave-2 {
       fill: #6b9fff;
-      /* Blue */
       stroke: rgba(107, 159, 255, 0.5);
-      /* Fastest speed forward */
-      animation: sineTranslate 6s linear infinite;
-      /* Fast forward */
+      animation: moveLeft 6s linear infinite;
     }
 
-    /* Keep the Cyan result line throbbing, not scrolling, to show it is the result */
+    /* The Cyan line gets a fast, vibrant scroll to stand out as the 'result' */
     .sine-line {
       fill: none;
       stroke: #00ffff;
-      /* Glowing result line - Cyan */
       stroke-width: 2.5px;
       stroke-linecap: round;
       filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.6));
       mix-blend-mode: screen;
-      transform-origin: center;
-      /* Keep the original throb effect for focus, but speed it up */
-      animation: sineLineThrob 3s ease-in-out infinite;
-    }
-
-    @keyframes sineLineThrob {
-
-      0%,
-      100% {
-        transform: scaleX(1);
-        opacity: 1;
-      }
-
-      50% {
-        transform: scaleX(1.02);
-        opacity: 0.8;
-      }
+      animation: moveRight 5s linear infinite;
     }
 
     .viz-label {
@@ -1091,6 +1071,7 @@
       color: rgba(122, 128, 153, 0.6);
       letter-spacing: 0.2em;
       text-transform: uppercase;
+      z-index: 2;
     }
   </style>
 </head>
@@ -1243,15 +1224,19 @@
       wasn't.</p>
 
     <div class="sine-visualization" aria-hidden="true">
-      <svg width="100%" height="220" viewBox="0 0 1000 220" preserveAspectRatio="none">
+      <svg width="100%" height="220" viewBox="0 0 1000 220" preserveAspectRatio="none" style="overflow: visible;">
+
         <path class="sine-path base-wave"
-          d="M0,110 C 125,10, 375,10, 500,110 C 625,210, 875,210, 1000,110 L 1000,220 L 0,220 Z" />
+          d="M -1000,110 C -875,10, -625,10, -500,110 C -375,210, -125,210, 0,110 C 125,10, 375,10, 500,110 C 625,210, 875,210, 1000,110 C 1125,10, 1375,10, 1500,110 C 1625,210, 1875,210, 2000,110 L 2000,220 L -1000,220 Z" />
+
         <path class="sine-path overlay-wave wave-1"
-          d="M0,110 C 125,210, 375,10, 500,110 C 625,210, 875,10, 1000,110 L 1000,220 L 0,220 Z" />
+          d="M -1000,110 C -875,210, -625,10, -500,110 C -375,210, -125,10, 0,110 C 125,210, 375,10, 500,110 C 625,210, 875,10, 1000,110 C 1125,210, 1375,10, 1500,110 C 1625,210, 1875,10, 2000,110 L 2000,220 L -1000,220 Z" />
+
         <path class="sine-path overlay-wave wave-2"
-          d="M0,110 C 125,10, 125,210, 250,110 C 375,10, 375,210, 500,110 C 625,10, 625,210, 750,110 C 875,10, 875,210, 1000,110 L 1000,220 L 0,220 Z" />
+          d="M -1000,110 C -875,10, -875,210, -750,110 C -625,10, -625,210, -500,110 C -375,10, -375,210, -250,110 C -125,10, -125,210, 0,110 C 125,10, 125,210, 250,110 C 375,10, 375,210, 500,110 C 625,10, 625,210, 750,110 C 875,10, 875,210, 1000,110 C 1125,10, 1125,210, 1250,110 C 1375,10, 1375,210, 1500,110 C 1625,10, 1625,210, 1750,110 C 1875,10, 1875,210, 2000,110 L 2000,220 L -1000,220 Z" />
+
         <path class="sine-line result-line"
-          d="M0,110 Q 62.5,10 125,110 T 250,110 T 375,110 T 500,110 T 625,110 T 750,110 T 875,110 T 1000,110" />
+          d="M -1000,110 Q -937.5,10 -875,110 T -750,110 T -625,110 T -500,110 T -375,110 T -250,110 T -125,110 T 0,110 T 125,110 T 250,110 T 375,110 T 500,110 T 625,110 T 750,110 T 875,110 T 1000,110 T 1125,110 T 1250,110 T 1375,110 T 1500,110 T 1625,110 T 1750,110 T 1875,110 T 2000,110" />
       </svg>
       <div class="viz-label">Superposition of periodic basis functions (SIREN construction)</div>
     </div>
@@ -1262,16 +1247,19 @@
     <h2 class="section-title">Two Ideas That Collide</h2>
 
     <h3 class="sub-title">The Spectral Bias Problem and SIREN's Solution</h3>
-    <p>The core problem with using standard ReLU networks as implicit representations is well-documented: neural
+    <p>The core problem with using standard networks with ReLU activations as implicit representations is
+      well-documented: neural
       networks exhibit <strong>spectral bias</strong> (Rahaman et al., 2019), learning low-frequency components of a
       target function first, often never fully capturing high-frequency detail regardless of training duration. For
-      natural images — which derive most of their perceptual richness from edges, textures, and high-frequency patterns
-      — this is fatal.</p>
+      natural images which derive most of their perceptual richness from edges, textures, and high-frequency patterns,
+      this is fatal.</p>
 
-    <p>Sitzmann et al. (2020) proposed an elegant solution: replace ReLU with $\sin(\omega_0 \cdot)$. The resulting
+    <p>Sitzmann et al. (2020) proposed a simple elegant solution: replace ReLU with $\sin(\omega_0 \cdot)$. The
+      resulting
       <strong>Sinusoidal Representation Network (SIREN)</strong> has no spectral bias because every layer is already a
       Fourier basis function. Through composition of sine functions, the network can represent arbitrarily complex
-      spectra. The key insight (stated in the paper but often underappreciated) is that <em>any derivative of a SIREN
+      spectra. The key insight (which is stated in the paper but is often underappreciated) is that <em>any derivative
+        of a SIREN
         is itself a SIREN</em>, since $\frac{d}{dx}\sin(x) = \cos(x)$ is a phase-shifted sine. This makes SIRENs
       uniquely suited for physics-based applications where the gradient field is as important as the function itself.
     </p>
@@ -1286,18 +1274,24 @@
         inherit it.</div>
     </div>
 
-    <p>The initialization scheme is equally critical. Preserving activation statistics across layers requires sampling
-      weights from $\mathcal{U}\!\left(-\sqrt{6/n}, \sqrt{6/n}\right) / \omega_0$ for hidden layers, derived by ensuring
+    <p>The initialization scheme is also very important. Preserving activation statistics across layers requires
+      sampling
+      weights from $\mathcal{U}\!\left(-\sqrt{6/n}, \sqrt{6/n}\right) / \omega_0$ for hidden layers. This is done to
+      ensure that
       each layer's output distribution remains arc-sine distributed (the stationary distribution of $\sin$). Get this
-      wrong and the network emits pure noise — a pitfall I encountered during development and fixed only after carefully
-      re-reading Appendix A of the original paper.</p>
+      wrong and the network emits pure noise, which funny enough is a pitfall I encountered during development and fixed
+      only after carefully
+      re-reading Appendix A of the original paper (and some say appendices aren't important, gotta laugh at that one).
+    </p>
 
     <h3 class="sub-title">The Lottery Ticket Hypothesis</h3>
-    <p>Frankle &amp; Carlin's 2018 preprint (published at ICLR 2019, where it won a best paper award) articulated a
-      deceptively simple observation: <em>within any large randomly-initialized network, there exists a small subnetwork
+    <p>Frankle &amp; Carlin's 2018 preprint (published at ICLR 2019, where it won a best paper award) presented a
+      simple but profound observation: <em>within any large randomly-initialized network, there exists a small
+        subnetwork
         that, when reset to its original initialization values and trained in isolation, matches the performance of the
         full network.</em> They called these subnetworks "winning tickets" because they had "won the initialization
-      lottery" — their initial weights happened to occupy a geometry in parameter space that enables fast, effective
+      lottery", that is, their initial weights happened to occupy a geometry in parameter space that enables fast,
+      effective
       learning.</p>
 
     <blockquote>
@@ -1306,16 +1300,19 @@
       <cite>— Frankle &amp; Carlin, ICLR 2019</cite>
     </blockquote>
 
-    <p>The mechanism for finding them — <strong>Iterative Magnitude Pruning (IMP)</strong> with weight rewinding — is
-      elegantly procedural: train to convergence, remove lowest-magnitude weights, <em>rewind</em> surviving weights
-      back to their initial values, repeat. The rewinding step is the crux. Without it, you're just compressing a
+    <p>The mechanism for finding them is called <strong>Iterative Magnitude Pruning (IMP)</strong> with weight
+      rewinding. It is
+      a shockingly simple algorithm: train to convergence, remove lowest-magnitude weights, <em>rewind</em> surviving
+      weights
+      back to their initial values, repeat. The rewinding step is the key. Without it, you're just compressing a
       trained network; with it, you're identifying which initial weight configurations are structurally privileged.</p>
 
     <p>What makes this particularly interesting for INRs is the <em>regime difference</em>. LTH was established on
-      classification tasks with discrete labels. INRs are pure regression problems — the "label" at each coordinate is
-      the full-resolution pixel value. The network has no class boundaries to exploit, no discrete clusters to align
-      with. It must encode a continuous function from scratch. Whether the lottery ticket phenomenon persists in this
-      regime was, until this work, an open question.</p>
+      classification tasks with discrete labels. INRs are pure regression problems where the "label" at each coordinate
+      is
+      the full-resolution pixel value. The network has no class boundaries to exploit, nor discrete clusters to align
+      with. It has to encode a continuous function from scratch. Whether the lottery ticket phenomenon persists in this
+      regime was, until this little blogpost of mine, an open question (afaik).</p>
 
     <div class="callout insight">
       <div class="callout-label">Related Work</div>
