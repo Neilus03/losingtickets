@@ -1070,45 +1070,39 @@
         winning ticket — a 2.3% sub-network maintaining 32.7&nbsp;dB PSNR — while the losing ticket collapses
         catastrophically to noise in just <em>two</em> pruning rounds. The mechanism is not bandwidth limitation but
         <strong>frequency carrier destruction</strong>: SIREN's high-magnitude weights act as the primary oscillators of
-        its Fourier decomposition, and removing them is equivalent to silencing all radio stations simultaneously.</p>
+        its Fourier decomposition, and removing them is equivalent to silencing all radio stations simultaneously.
+      </p>
     </div>
 
     <!-- 1. Introduction -->
     <div class="section-number">01 — Introduction</div>
-    <h2 class="section-title">A Confession: I'm a 3DV Person Who Moonlights in Theory</h2>
+    <h2 class="section-title">A Confession: I'm a 3DV Person Who Enjoys Theory</h2>
 
     <p class="drop-cap">During my undergrad at UAB, I took the Advanced Machine Learning course taught by <strong>Andrey
-        Barsky</strong> — one of the best teachers I've had the luck of learning from. The class was demanding in the
-      best way: every few weeks a new idea would land that quietly rearranged how I thought about learning machines. The
-      Neural Tangent Kernel. Low-Rank Adaptation. Continual learning. Model merging. And the one that stuck deepest: the
-      <strong>Lottery Ticket Hypothesis</strong>.</p>
+        Barsky</strong>, one of the best teachers I've had the luck of learning from. The class was demanding in the
+      best way: every few weeks he would present a new idea that quietly rearranged how I thought about deep learning.
+      The
+      Neural Tangent Kernel. Low-Rank Adaptation. Continual learning. Model merging. And the one of interest for this
+      blog: the
+      <strong>Lottery Ticket Hypothesis</strong>.
+    </p>
 
-    <p>Andrey introduced the LTH almost as a philosophical provocation: inside every large, randomly initialized
+    <p>Andrey introduced the LTH as a philosophical provocation: inside every large, randomly initialized
       network, there exists a tiny sub-network that, if reset to its initial values and trained alone, can match the
-      full network's performance. He showed Frankle &amp; Carlin's results — sparse architectures outperforming their
-      dense parents with 21% of the original parameters — and the room went quiet for a moment. There's something
-      unsettling and beautiful about the idea that most of what we train is scaffolding, not structure.</p>
+      full network's performance. He showed the LTH paper's results: sparse architectures outperforming their
+      dense parents with 21% of the original parameters. I just went: WOW. There was something
+      both painful and beautiful about the idea that most of what we train is scaffolding, not structure.</p>
 
-    <p>That obsession with theoretical and architectural deep learning didn't stay in the classroom. By day I work on 3D
-      vision — point cloud encoders, 3D asset generation, the geometric side of things. But at night, I keep reading and
-      thinking about the ideas Andrey introduced. These aren't niche curiosities; they're windows into why learning
-      works at all.</p>
+    <p>From that day on I've truly enjoyed reading about theoretical and architectural deep learning, even if it is not
+      my core focus (I would not be mathematically capable anyways). By day I work on 3D
+      vision: point cloud encoders, 3D asset generation, the geometric side of things. But at night, I keep reading and
+      thinking about the ideas Andrey introduced.</p>
 
-    <div class="callout insight">
-      <div class="callout-label">Origin Story: The PAH Paper</div>
-      <p>That class also led directly to a research collaboration. Together with Andrey and my friend <strong>Maria
-          Pilligua</strong> (now at EPFL), we built <em>Prototype-Augmented Hypernetworks (PAH)</em> — a continual
-        learning framework where a single hypernetwork, conditioned on learnable task prototypes, dynamically generates
-        task-specific classifier heads on demand. It was published at a CVPR workshop, and working on it was one of the
-        most genuinely enjoyable research experiences of my life: we were building on the exact ideas from class, in
-        real experiments, at 2am, with a lot of coffee. Maria did exceptional work bridging the prototype and
-        distillation components; the result was a method that reached state-of-the-art on Split-CIFAR100 with only 1.7%
-        forgetting.</p>
-    </div>
-
-    <p>This project — applying the LTH to Sinusoidal Representation Networks — is a direct descendant of that period.
+    <p>In this blogpost, I wanted to share a small project that's a direct descendant of that period. Today I will try
+      to write about applying the LTH to Sinusoidal Representation Networks
       It's the kind of experiment you run because the question is genuinely interesting, not because there's a benchmark
-      to chase. I wanted to know whether the lottery ticket phenomenon survives the shift from ReLU classification to
+      to chase. I wanted to know whether the lottery ticket phenomenon survives the shift from ReLU classification (most
+      cases I have seen work on this setting) to
       periodic-activation regression; and if so, what role weight magnitude plays in a network that encodes signals
       through sine waves rather than piecewise linear boundaries.</p>
 
@@ -1322,7 +1316,8 @@
     <p>After each pruning step, surviving weights are <strong>rewound to their exact epoch-0 values</strong> — the true
       LTH protocol. This is implemented by maintaining a frozen copy of the initial state dict and overwriting
       <code>module.weight_orig</code> (PyTorch's internal pruning target) with the masked initial weights:
-      $\theta_{\text{orig}} \leftarrow m \odot \theta_0$.</p>
+      $\theta_{\text{orig}} \leftarrow m \odot \theta_0$.
+    </p>
 
     <div class="math-block">
       <div>$$\text{Remaining}(k) = (1 - p)^k \qquad p = 0.20, \quad k \in \{1,\ldots,18\}$$</div>
@@ -1383,7 +1378,8 @@
       still above 40&nbsp;dB at 32.8% remaining weights, above 35&nbsp;dB at just 4.4%, and landing at
       <strong>32.7&nbsp;dB with only 2.3% of its original parameters</strong>. For context, 30&nbsp;dB is the informal
       threshold for "perceptually acceptable" image quality. The winning ticket is still above this threshold at extreme
-      sparsity.</p>
+      sparsity.
+    </p>
 
     <p>What does this mean? That the Mona Lisa — all its sfumato gradients, its enigmatic expression, its Renaissance
       chiaroscuro — can be encoded in roughly 3,600 floating-point numbers and a connectivity pattern, down from
@@ -1408,7 +1404,8 @@
     <p>This is not gradual. It is a step function. The removal of 20% of the highest-magnitude weights causes the
       network to emit noise from which it never recovers across 18,000 additional training epochs. This is the
       <strong>frequency collapse</strong>: the entire signal-encoding capacity of the SIREN is destroyed in a single
-      pruning round.</p>
+      pruning round.
+    </p>
 
     <div class="data-table-wrap">
       <table>
@@ -1488,7 +1485,8 @@
     <p>Consider what a SIREN weight matrix $\mathbf{W}_i$ actually does. The $j$-th output of layer $i$ computes
       $\sin(\omega_0 (\mathbf{W}_i \mathbf{x})_j + b_j)$. The magnitude of $(\mathbf{W}_i \mathbf{x})_j$ determines the
       <em>amplitude</em> of the oscillation at that node. Large weights → large pre-activation values → the sine
-      oscillates across a wider range of its domain. Small weights → the sine barely moves from zero.</p>
+      oscillates across a wider range of its domain. Small weights → the sine barely moves from zero.
+    </p>
 
     <p>Through composition of $k$ such layers, the SIREN constructs a superposition of high-order trigonometric
       polynomials. The specific frequencies that can be represented are determined by which weight combinations produce
@@ -1725,40 +1723,39 @@
     new Chart(ctx, {
       type: 'line',
       data: {
-        labels: remaining.map(r => r + '%'),
+        // Using the raw numbers for a logarithmic scale
+        labels: remaining,
         datasets: [
           {
-            label: 'Winning Ticket',
+            label: 'Winner',
             data: psnrData.winner,
-            borderColor: '#e8b84b',
-            backgroundColor: 'rgba(232,184,75,0.08)',
-            borderWidth: 2.5,
-            pointRadius: 4,
-            pointBackgroundColor: '#e8b84b',
-            tension: 0.3,
+            borderColor: '#00ffff', // Cyan matching the image
+            backgroundColor: 'rgba(0, 255, 255, 0.08)',
+            borderWidth: 3,
+            pointRadius: 5,
+            pointBackgroundColor: '#00ffff',
+            tension: 0.1,
             fill: false
           },
           {
-            label: 'Random Ticket',
+            label: 'Random',
             data: psnrData.random,
-            borderColor: '#6b9fff',
-            backgroundColor: 'rgba(107,159,255,0.08)',
-            borderWidth: 2,
-            pointRadius: 4,
-            pointBackgroundColor: '#6b9fff',
-            borderDash: [5, 4],
-            tension: 0.3,
+            borderColor: '#ffcc00', // Yellow matching the image
+            backgroundColor: 'rgba(255, 204, 0, 0.08)',
+            borderWidth: 3,
+            pointRadius: 5,
+            pointBackgroundColor: '#ffcc00',
+            tension: 0.1,
             fill: false
           },
           {
-            label: 'Losing Ticket',
+            label: 'Loser',
             data: psnrData.loser,
-            borderColor: '#e84b4b',
-            backgroundColor: 'rgba(232,75,75,0.08)',
-            borderWidth: 2,
-            pointRadius: 4,
-            pointBackgroundColor: '#e84b4b',
-            borderDash: [2, 3],
+            borderColor: '#ff3366', // Pink/Red matching the image
+            backgroundColor: 'rgba(255, 51, 102, 0.08)',
+            borderWidth: 3,
+            pointRadius: 5,
+            pointBackgroundColor: '#ff3366',
             tension: 0.1,
             fill: false
           }
@@ -1777,31 +1774,48 @@
             bodyColor: '#7a8099',
             padding: 12,
             callbacks: {
+              title: ctx => `Remaining: ${ctx[0].label}%`,
               label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)} dB`
             }
           }
         },
         scales: {
           x: {
-            reverse: true,
-            grid: { color: 'rgba(255,255,255,0.04)' },
+            type: 'logarithmic', // Makes the spacing match the image
+            reverse: true, // With a logarithmic scale, 'reverse' correctly puts 100 (10^2) on the left
+            grid: { color: 'rgba(255,255,255,0.1)', borderDash: [4, 4] },
+            min: 2, // Sets the minimum bound close to your 2.3%
+            max: 100, // Sets the maximum bound to 100%
             ticks: {
-              color: '#7a8099',
-              font: { family: 'JetBrains Mono', size: 11 }
+              color: '#f0f2f8',
+              font: { family: 'JetBrains Mono', size: 12 },
+              callback: function (value, index, values) {
+                // Format ticks as 10^2, 10^1 etc to match the image
+                if (value === 100) return '10²';
+                if (value === 10) return '10¹';
+                return null;
+              }
+            },
+            title: {
+              display: true,
+              text: 'Remaining Weights (%)',
+              color: '#f0f2f8',
+              font: { family: 'Syne, sans-serif', size: 14 }
             }
           },
           y: {
-            grid: { color: 'rgba(255,255,255,0.04)' },
+            grid: { color: 'rgba(255,255,255,0.1)', borderDash: [4, 4] },
+            min: 10,
+            max: 48,
             ticks: {
-              color: '#7a8099',
-              font: { family: 'JetBrains Mono', size: 11 },
-              callback: v => v + ' dB'
+              color: '#f0f2f8',
+              font: { family: 'JetBrains Mono', size: 12 }
             },
             title: {
               display: true,
               text: 'PSNR (dB)',
-              color: '#7a8099',
-              font: { family: 'Syne, sans-serif', size: 11 }
+              color: '#f0f2f8',
+              font: { family: 'Syne, sans-serif', size: 14 }
             }
           }
         }
