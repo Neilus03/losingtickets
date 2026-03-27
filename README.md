@@ -15,15 +15,18 @@ The **Lottery Ticket Hypothesis (Frankle & Carbin, 2018)** suggests that within 
 ## 🛠️ 2. Methodology & Architecture
 
 ### 2.1 The SIREN Backbone
-We utilize a 5-layer MLP with **256 hidden units** and periodic activation functions ($\sin(\omega_0 \mathbf{x} + \mathbf{b})$). 
-*   **Target Image:** Leonardo da Vinci’s *Mona Lisa* ($256 \times 256$).
+We utilize a 5-layer MLP with **256 hidden units** and periodic activation functions:
+```math
+f(\mathbf{x}) = \sin(\omega_0 \mathbf{W}\mathbf{x} + \mathbf{b})
+```
+*   **Target Image:** Leonardo da Vinci’s *Mona Lisa* (256 x 256).
 *   **Parameters:** ~262,000 floats.
-*   **Initialization:** $\mathcal{U}(-\sqrt{6/n}, \sqrt{6/n})$ with $\omega_0 = 30$ for the first layer to capture high-frequency details.
+*   **Initialization:** Uniformly sampled from `[-sqrt(6/n), sqrt(6/n)]` with `omega_0 = 30` for the first layer to capture high-frequency details.
 
 ### 2.2 Iterative Magnitude Pruning (IMP)
 We follow a strict pruning loop with **Weight Rewinding**:
-1.  **Train** to convergence ($1000$ epochs).
-2.  **Prune** $20\%$ of weights based on three competing strategies.
+1.  **Train** to convergence (1000 epochs).
+2.  **Prune** 20% of weights based on three competing strategies.
 3.  **Rewind** surviving weights to their exact values at `Epoch 0`.
 4.  **Repeat** across 20+ iterations until target sparsity (~1%) is achieved.
 
@@ -39,7 +42,7 @@ We follow a strict pruning loop with **Weight Rewinding**:
 The experiment reveals a massive performance gap between the chosen topologies.
 
 ![PSNR vs Sparsity](outputs/plots/psnr_vs_sparsity.png)
-*Figure 1: PSNR vs Sparsity curve. The "Winner" ticket (Blue) remains stable above 30dB even with only 1.8% of weights remaining. The "Loser" ticket (Red) collapses instantly to baseline noise (~11dB) at the first pruning step.*
+*Figure 1: PSNR vs Sparsity curve. The "Winner" ticket remains stable around 30dB even with only 1.8% of weights remaining. The "Loser" ticket collapses instantly to baseline noise (~11dB) at the first pruning step.*
 
 ### 🎥 Visualization Dashboard
 Below are the animated progressions of each ticket type from **100% → 1% remaining weights**.
@@ -48,7 +51,7 @@ Below are the animated progressions of each ticket type from **100% → 1% remai
 | :--- | :--- | :--- |
 | **Winner** | ![Winner GIF](outputs/plots/degradation_winner.gif) | **Remarkable Resilience.** Even at 1.8% sparsity, the network recovers the facial silhouette and skin tones. |
 | **Random** | ![Random GIF](outputs/plots/degradation_random.gif) | **Logarithmic Decay.** The image gradually blurs into localized color blocks as the network's capacity to represent edges fades. |
-| **Loser** | ![Loser GIF](outputs/plots/degradation_loser.gif) | **Instant Failure.** Large magnitude weights in SIREN define the periodic activation's magnitude. Removing them makes the network "go dark" or flat instantly. |
+| **Loser** | ![Loser GIF](outputs/plots/degradation_loser.gif) | **Instant Failure.** Large magnitude weights in SIREN define the periodic activation's magnitude. Removing them makes the network go dark instantly. |
 
 ---
 
