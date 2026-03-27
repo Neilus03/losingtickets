@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Losing Tickets in Neural Representations — Neil D.</title>
+  <title>Losing Tickets in Neural Representations — Neil De La Fuente</title>
 
   <!-- KaTeX for math -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
@@ -467,7 +467,7 @@
       display: flex;
       align-items: center;
       gap: 1rem;
-      margin: 4rem 0;
+      margin: 3rem 0;
       color: var(--text-dim);
       font-family: 'Syne', sans-serif;
       font-size: 0.65rem;
@@ -486,14 +486,14 @@
     .lab-section {
       max-width: var(--wide-w);
       margin: 0 auto;
-      padding: 0 2rem 5rem;
+      padding: 0 2rem 4rem;
     }
 
     .lab-wrap {
       background: var(--bg-2);
       border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 3rem;
+      padding: 2.5rem;
       position: relative;
       overflow: hidden;
     }
@@ -510,7 +510,7 @@
 
     .lab-header {
       text-align: center;
-      margin-bottom: 3rem;
+      margin-bottom: 2rem;
     }
 
     .lab-header .kicker {
@@ -696,8 +696,8 @@
       background: var(--bg-2);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 2rem;
-      margin: 3rem 0;
+      padding: 1.5rem 2rem;
+      margin: 2rem 0;
     }
 
     .chart-canvas-wrap {
@@ -755,7 +755,7 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       overflow: hidden;
-      margin: 3rem 0;
+      margin: 2rem 0;
     }
 
     .stat-cell {
@@ -809,7 +809,7 @@
     }
 
     th {
-      padding: 0.75rem 1rem;
+      padding: 0.75rem 0.75rem;
       text-align: left;
       font-family: 'Syne', sans-serif;
       font-size: 0.65rem;
@@ -820,7 +820,7 @@
     }
 
     td {
-      padding: 0.6rem 1rem;
+      padding: 0.6rem 0.75rem;
       border-bottom: 1px solid rgba(255, 255, 255, 0.04);
     }
 
@@ -873,7 +873,7 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 2rem 2.5rem;
-      margin-top: 4rem;
+      margin-top: 3rem;
     }
 
     .references h3 {
@@ -986,12 +986,66 @@
       animation: sineScroll 20s linear infinite;
     }
 
+    /* ─── Falling Tickets Intro ─────────────────────────────── */
+    .falling-ticket {
+      position: fixed;
+      top: -60px;
+      width: 24px;
+      height: 48px;
+      background: var(--gold);
+      border-radius: 2px;
+      opacity: 0.7;
+      pointer-events: none;
+      z-index: 10000;
+      box-shadow: 0 0 8px rgba(232, 184, 75, 0.4);
+      clip-path: polygon(0% 0, 100% 0, 100% 40%, 92% 50%, 100% 60%, 100% 100%, 0 100%, 0 60%, 8% 50%, 0 40%);
+    }
+
+    @keyframes ticketFall {
+      0% {
+        transform: translateY(-10vh) rotate(0deg) translateX(0);
+        opacity: 0;
+      }
+
+      10% {
+        opacity: 0.7;
+      }
+
+      90% {
+        opacity: 0.7;
+      }
+
+      100% {
+        transform: translateY(115vh) rotate(540deg) translateX(40px);
+        opacity: 0;
+      }
+    }
+
+    /* ─── The Golden Ticket ────────────────────────────────── */
+    .golden-ticket {
+      background: linear-gradient(135deg, #fff2ac 0%, #e8b84b 50%, #b38a2b 100%) !important;
+      box-shadow: 0 0 25px rgba(255, 215, 0, 0.7) !important;
+      z-index: 10001 !important;
+      filter: brightness(1.2) contrast(1.1);
+      animation: ticketFall 5s linear both, ticketShimmer 1.5s infinite alternate ease-in-out !important;
+    }
+
+    @keyframes ticketShimmer {
+      from {
+        filter: brightness(1.2) drop-shadow(0 0 5px gold);
+      }
+
+      to {
+        filter: brightness(2) drop-shadow(0 0 25px gold);
+      }
+    }
+
     /* ─── Sine Wave Superposition Viz (Flawless Infinite Scroll) ────────── */
     .sine-visualization {
       position: relative;
       width: 100%;
       height: 260px;
-      margin: 4rem auto 1rem;
+      margin: 2.5rem auto 1rem;
       background: linear-gradient(180deg, rgba(12, 13, 17, 0) 0%, rgba(17, 19, 24, 1) 20%, rgba(17, 19, 24, 1) 80%, rgba(12, 13, 17, 0) 100%);
       border-top: 1px solid rgba(255, 255, 255, 0.03);
       border-bottom: 1px solid rgba(255, 255, 255, 0.03);
@@ -1108,10 +1162,10 @@
       </g>
     </svg>
 
-    <div class="hero-kicker">Research Case Study — March 2026</div>
+    <div class="hero-kicker">March 2026</div>
     <h1 class="hero-title">Losing <em>Tickets</em> in Neural Representations</h1>
     <div class="hero-byline">
-      <p>Neil D. &nbsp;·&nbsp; Deep Learning Research &nbsp;·&nbsp; PyTorch / CUDA</p>
+      <p>Neil De La Fuente. &nbsp;·&nbsp; Deep Learning Research &nbsp;·&nbsp; PyTorch / CUDA</p>
       <span class="tag gold">SIREN + LTH</span>
       <span class="tag teal">Pruning &amp; Compression</span>
     </div>
@@ -1132,15 +1186,15 @@
         <div class="stat-label">Peak Winner PSNR (dB)</div>
       </div>
       <div class="stat-cell">
-        <div class="stat-value">32.7</div>
-        <div class="stat-label">Winner PSNR at 2.3% Weights</div>
+        <div class="stat-value">29.2</div>
+        <div class="stat-label">Winner PSNR at 1.2% Weights</div>
       </div>
       <div class="stat-cell">
         <div class="stat-value crimson">11.3</div>
         <div class="stat-label">Loser PSNR After 3rd Iter</div>
       </div>
       <div class="stat-cell">
-        <div class="stat-value">18×</div>
+        <div class="stat-value">21x</div>
         <div class="stat-label">Pruning Iterations</div>
       </div>
     </div>
@@ -1151,12 +1205,12 @@
 
     <div class="abstract">
       <div class="abstract-label">Abstract</div>
-      <p>Implicit Neural Representations (INRs) are overparameterized by design — a feature, not a bug. But can we
+      <p>Implicit Neural Representations (INRs) are overparameterized by design, a feature, not a bug. But can we
         surgically remove most of their parameters and still preserve the signal they've memorized? This work applies
         the Lottery Ticket Hypothesis to Sinusoidal Representation Networks fitted to a single image, contrasting three
         pruning strategies
-        across 18 iterative rounds down to 1.8% of original network weight. We find that SIREN contains a remarkable
-        winning ticket — a 2.3% sub-network maintaining 32.7&nbsp;dB PSNR — while the losing ticket collapses
+        across 21 iterative rounds down to 1.2% of original network weight. We find that SIREN contains a remarkable
+        winning ticket — a 1.2% sub-network maintaining 29.2&nbsp;dB PSNR, while the losing ticket collapses
         catastrophically to noise in just <em>two</em> pruning rounds. The mechanism is not bandwidth limitation but
         <strong>frequency carrier destruction</strong>: SIREN's high-magnitude weights act as the primary oscillators of
         its Fourier decomposition, and removing them is equivalent to silencing all radio stations simultaneously.
@@ -1301,24 +1355,24 @@
     </blockquote>
 
     <p>The mechanism for finding them is called <strong>Iterative Magnitude Pruning (IMP)</strong> with weight
-      rewinding. It is
-      a shockingly simple algorithm: train to convergence, remove lowest-magnitude weights, <em>rewind</em> surviving
-      weights
-      back to their initial values, repeat. The rewinding step is the key. Without it, you're just compressing a
-      trained network; with it, you're identifying which initial weight configurations are structurally privileged.</p>
+      rewinding. It is a shockingly simple algorithm: train to convergence, remove lowest-magnitude weights,
+      <em>rewind</em> surviving
+      weights back to their initial values, repeat. The rewinding step is the key. If you miss it, you're just
+      compressing a
+      trained network; with it, you're identifying which initial weight configurations are structurally privileged.
+    </p>
 
     <p>What makes this particularly interesting for INRs is the <em>regime difference</em>. LTH was established on
       classification tasks with discrete labels. INRs are pure regression problems where the "label" at each coordinate
-      is
-      the full-resolution pixel value. The network has no class boundaries to exploit, nor discrete clusters to align
+      is the full-resolution pixel value. The network has no class boundaries to exploit, nor discrete clusters to align
       with. It has to encode a continuous function from scratch. Whether the lottery ticket phenomenon persists in this
       regime was, until this little blogpost of mine, an open question (afaik).</p>
 
     <div class="callout insight">
       <div class="callout-label">Related Work</div>
       <p>Frankle et al. (2020) later showed that IMP's requirement for exact initialization rewinding weakens in larger
-        networks — "late rewinding" to an early training checkpoint often suffices. For small-scale INRs with few
-        parameters, exact rewinding (to epoch 0) is necessary and sufficient. The cleaner the setup, the more the
+        networks: "late rewinding" to an early training checkpoint often suffices. For small-scale INRs with few
+        parameters, exact rewinding (to epoch 0) is both necessary and sufficient. The cleaner the setup, the more the
         original hypothesis holds.</p>
     </div>
 
@@ -1329,8 +1383,7 @@
     <div class="lab-wrap">
       <div class="lab-header">
         <div class="kicker">Interactive Experiment</div>
-        <h2>The Pruning Laboratory</h2>
-        <p>Drag the slider to advance through 18 pruning iterations. Watch the three tickets diverge.</p>
+        <p>Drag the slider to advance through 21 pruning iterations. Watch the three tickets diverge.</p>
       </div>
 
       <div class="slider-wrap">
@@ -1353,7 +1406,7 @@
           </div>
         </div>
         <br>
-        <input type="range" id="slider" min="0" max="17" value="0" oninput="updateImages()" />
+        <input type="range" id="slider" min="0" max="20" value="0" oninput="updateImages()" />
       </div>
 
       <div class="ticket-grid">
@@ -1393,19 +1446,29 @@
     <h3 class="sub-title">The SIREN Backbone</h3>
     <p>I used a 5-layer MLP with 256 hidden units at each layer, an input dimension of 2 (normalized pixel coordinates
       in $[-1, 1]^2$) and output dimension of 3 (RGB, in $[-1, 1]$). The first layer uses $\omega_0 = 30$ to set the
-      base frequency; subsequent hidden layers inherit this factor. The output layer is a plain linear map — no sine, no
-      clamp — allowing unconstrained gradient flow during training, with clamping applied only at reconstruction time.
+      base frequency; subsequent hidden layers inherit this factor. The output layer is a plain linear map, no sine, no
+      clamp. This allows for unconstrained gradient flow during training, with clamping applied only at reconstruction
+      time.
     </p>
 
-    <p>Total parameters: <code>2×256+256 + 3×(256×256+256) + 256×3+3 = 198,915</code>. Small enough to run entirely in
-      VRAM, large enough that the LTH dynamics are genuinely interesting. The target: Leonardo da Vinci's <em>Mona
-        Lisa</em>, resized to 256×256 and normalized. I chose this image deliberately — it has a rich mix of
+    <p>Total parameters: <code>(2×256+256) + 3×(256×256+256) + (256×3+3) = 198,915</code>.
+      This corresponds to the input layer ($2 \to 256$), three hidden layers ($256 \to 256$), and the output layer ($256
+      \to 3$), including biases for each.
+      Small enough to run entirely in the VRAM of my old-ish laptop GPU, large enough that the LTH dynamics are
+      interesting.
+      The target: Leonardo da Vinci's
+      <em>Mona
+        Lisa</em> aka <em>La Giocconda</em>, resized to 256×256 and normalized. I chose this image deliberately because
+      it has a
+      rich mix of
       low-frequency gradients (the sky, skin) and high-frequency detail (the veil, background foliage), making the
-      frequency-collapse mechanism maximally visible.</p>
+      frequency-collapse mechanism quite visible, I also chose it because I like the painting.
+    </p>
 
     <h3 class="sub-title">The Three Pruning Strategies</h3>
-    <p>At each of 18 iterations, after 1,000 training epochs and Adam optimization at $\text{lr}=10^{-4}$ with cosine
-      annealing, I applied one of three pruning functions to 20% of remaining active weights:</p>
+    <p>At each of 21 iterations, after 1,000 training epochs and Adam optimization at $\text{lr}=10^{-4}$ with cosine
+      annealing, I applied one of three pruning functions to 20% of remaining active weights (those that survived the
+      previous round):</p>
 
     <div class="data-table-wrap">
       <table>
@@ -1436,21 +1499,22 @@
       </table>
     </div>
 
-    <p>After each pruning step, surviving weights are <strong>rewound to their exact epoch-0 values</strong> — the true
-      LTH protocol. This is implemented by maintaining a frozen copy of the initial state dict and overwriting
-      <code>module.weight_orig</code> (PyTorch's internal pruning target) with the masked initial weights:
+    <p>After each pruning step, surviving weights are <strong>rewound to their exact epoch-0 values</strong> following
+      the LTH protocol. In my implementation, this is done by maintaining a frozen copy of the initial state dict and
+      overwriting <code>module.weight_orig</code> (PyTorch's internal pruning target) with the masked initial weights:
       $\theta_{\text{orig}} \leftarrow m \odot \theta_0$.
     </p>
 
     <div class="math-block">
-      <div>$$\text{Remaining}(k) = (1 - p)^k \qquad p = 0.20, \quad k \in \{1,\ldots,18\}$$</div>
-      <div style="margin-top:0.5rem; font-size:0.88rem; color: #7a8099;">Total iterations: $k = \lceil \log(0.02) /
-        \log(0.80) \rceil = 18$, reaching ${\approx}1.8\%$ remaining.</div>
+      <div>$$\text{Remaining}(k) = (1 - p)^k \qquad p = 0.20, \quad k \in \{1,\ldots,21\}$$</div>
+      <div style="margin-top:0.5rem; font-size:0.88rem; color: #7a8099;">Total iters: $k = \lceil \log(0.01) /
+        \log(0.80) \rceil = 21$, reaching ${\approx}1\%$ remaining.</div>
     </div>
 
-    <p>Critically: the "20% of remaining" formulation means pruning follows an <em>exponential decay schedule</em>, not
-      a linear one. By iteration 18 we're at 1.8% of original weights — roughly 3,580 parameters carrying the entire
-      Mona Lisa. The PSNR results at this extreme tell us what is structurally essential versus decorative in the
+    <p>Note that the "20% of remaining" formulation means pruning follows an <em>exponential decay schedule</em>, not
+      a linear one. By iteration 21 we're at 1.2% of original weights, roughly 2,386 parameters carrying the entire
+      Mona Lisa. The PSNR results at this extreme tell us what is structurally essential versus decorative scaffolding
+      in the
       network's parametrization.</p>
 
     <div class="callout warning">
@@ -1458,16 +1522,17 @@
       <p>The losing ticket required special handling. PyTorch's built-in pruning methods offer no "prune largest"
         variant. The custom implementation sorts all active weights globally on CPU (to avoid GPU <code>kthvalue</code>
         instability on degenerate distributions of near-zero values), determines the threshold at position
-        $n_\text{keep}$ in the sorted array, and applies <code>prune.custom_from_mask</code> per-layer. Crucially,
-        already-pruned zeros are excluded from the magnitude pool — otherwise they dominate and artificially inflate the
-        threshold.</p>
+        $n_\text{keep}$ in the sorted array, and applies <code>prune.custom_from_mask</code> per-layer. Already-pruned
+        zeros
+        are excluded from the magnitude pool, otherwise they dominate and artificially inflate the threshold.</p>
     </div>
 
     <!-- 4. Results -->
     <div class="section-number">04 — Results</div>
     <h2 class="section-title" id="results">The Frequency Collapse</h2>
 
-    <p>The results are dramatic enough to be immediately visible in the PSNR curves below. Let me walk through what each
+    <p>The results are dramatic enough to be immediately noticeable in the PSNR curves below. Let me walk through what
+      each
       line is telling us.</p>
   </article>
 
@@ -1489,7 +1554,7 @@
         </div>
       </div>
       <div class="fig-caption"><strong>Figure 1.</strong> PSNR (dB) vs. remaining weight fraction. X-axis is logarithmic
-        and reversed (left = dense, right = sparse). Note the winner's graceful decay versus the loser's step-function
+        (left = dense, right = sparse). Note the winner's slowed decay versus the loser's step-function
         collapse after just one pruning round.</div>
     </div>
   </div>
@@ -1497,35 +1562,39 @@
   <article class="article">
 
     <h3 class="sub-title">The Winner: Resilient to the End</h3>
-    <p>The winning ticket starts at 47.3&nbsp;dB — essentially perfect reconstruction. Its decay is remarkably slow:
-      still above 40&nbsp;dB at 32.8% remaining weights, above 35&nbsp;dB at just 4.4%, and landing at
-      <strong>32.7&nbsp;dB with only 2.3% of its original parameters</strong>. For context, 30&nbsp;dB is the informal
-      threshold for "perceptually acceptable" image quality. The winning ticket is still above this threshold at extreme
-      sparsity.
+    <p>The winning ticket starts at 47.3&nbsp;dB, essentially perfect reconstruction. Its decay is really slow:
+      still above 40&nbsp;dB at 32.8% remaining weights, above 34&nbsp;dB at just 4.4%, and landing at
+      <strong>29.2&nbsp;dB with only 1.2% of its original parameters</strong>. For context, 30&nbsp;dB is the informal
+      threshold for "perceptually acceptable" image quality. The winning ticket stays above this threshold right up
+      until the final two pruning rounds, which shows resilience at extreme sparsity.
     </p>
 
-    <p>What does this mean? That the Mona Lisa — all its sfumato gradients, its enigmatic expression, its Renaissance
-      chiaroscuro — can be encoded in roughly 3,600 floating-point numbers and a connectivity pattern, down from
-      198,915. This is an approximately <strong>55× compression</strong> of the network, with perceptually reasonable
-      output quality. In sparse COO format (storing only non-zero weights with their indices), this translates to
-      roughly 27&nbsp;KB versus the original ~781&nbsp;KB state dict.</p>
+    <p>What does this mean? That the Mona Lisa, with all its sfumato gradients, its enigmatic expression, its
+      Renaissance
+      chiaroscuro... can be encoded in roughly 2,387 floating-point numbers and a connectivity pattern, down from
+      198,915. This is an approximately <strong>40× compression</strong> of the network in terms of storage. In sparse
+      COO format (storing only non-zero weights with their indices), this translates to
+      roughly 19.1&nbsp;KB versus the original ~781&nbsp;KB dense state dict.</p>
 
     <h3 class="sub-title">The Random Ticket: Logarithmic Decay</h3>
     <p>The random ticket behaves exactly as you'd expect from information theory: smooth, monotonic decay. It stays
-      surprisingly competitive at moderate sparsity (above 35&nbsp;dB until around 10% remaining), then falls off
-      rapidly below 5%. This is the baseline against which winning and losing tickets are compared — and it demonstrates
+      surprisingly competitive at moderate sparsity (staying above 33&nbsp;dB until around 10% remaining), then falls
+      off
+      rapidly below 5%, eventually crashing to 12.9&nbsp;dB at the final 1.2% mark. This is the baseline against which
+      winning and losing tickets are compared, and it demonstrates
       that <em>structure matters</em>. The winning ticket consistently outperforms the random ticket at every sparsity
-      level, confirming that the LTH is not a tautology (any sparse network is fine) but a genuine property of the
+      level (often by massive margins), confirming that the LTH is not a tautology (any sparse network is fine) but a
+      genuine property of the
       initialization-magnitude alignment.</p>
 
     <h3 class="sub-title">The Loser: Instantaneous Collapse</h3>
-    <p>The losing ticket's curve is the most striking feature of this entire experiment. It begins at 47.6&nbsp;dB —
-      actually the highest starting point, noise variation aside. Then, at 80% remaining weights (just the first
-      pruning), it drops to 29.3&nbsp;dB. By 64% remaining, it's at 11.5&nbsp;dB — the PSNR of a blank gray screen —
+    <p>The losing ticket's curve is the most surprising feature of this entire experiment. It begins at 47.6&nbsp;dB.
+      Then, at 80% remaining weights (just the first
+      pruning), it drops to 29.3&nbsp;dB. By 64% remaining, it's at 11.5&nbsp;dB, the PSNR of a blank gray screen,
       where it flatlines for all subsequent iterations.</p>
 
-    <p>This is not gradual. It is a step function. The removal of 20% of the highest-magnitude weights causes the
-      network to emit noise from which it never recovers across 18,000 additional training epochs. This is the
+    <p>This is not gradual. It is a step function. The removal of just the top 20% highest-magnitude weights causes the
+      network to emit noise. It never recovers from this state, despite 20,000 subsequent training epochs. This is the
       <strong>frequency collapse</strong>: the entire signal-encoding capacity of the SIREN is destroyed in a single
       pruning round.
     </p>
@@ -1584,15 +1653,23 @@
             <td class="td-loser">11.32</td>
             <td>+21.4</td>
           </tr>
+
+          <tr>
+            <td>1.2</td>
+            <td class="td-winner">29.18</td>
+            <td class="td-random">12.90</td>
+            <td class="td-loser">11.90</td>
+            <td>+17.3</td>
+          </tr>
         </tbody>
       </table>
     </div>
 
     <div class="callout finding">
       <div class="callout-label">Key Finding</div>
-      <p>The winner-loser PSNR gap at 64% remaining is <strong>34.5 dB</strong>. This is not a marginal experimental
-        effect — it is the difference between a recognizable painting and white noise. No cherry-picking or
-        hyperparameter tuning produces this; it is a structural consequence of how SIREN encodes information in its
+      <p>The winner-loser PSNR gap at 64% remaining is <strong>34.5 dB</strong>. That is a big gap, the
+        difference between a recognizable painting and white noise. This is a structural consequence of how SIREN
+        encodes information in its
         weight magnitudes.</p>
     </div>
 
@@ -1601,8 +1678,8 @@
     <h2 class="section-title" id="discussion">Why the Loser Fails Catastrophically</h2>
 
     <p>The losing ticket's behavior requires explanation. In a standard ReLU network, pruning high-magnitude weights
-      causes degradation — but gradual degradation, not instant collapse. Losing tickets in ReLU networks are bad; in
-      SIRENs, they are dead.</p>
+      causes degradation, but gradual degradation, not instant collapse. Losing tickets in ReLU networks is bad; in
+      SIRENs, catastrophic.</p>
 
     <h3 class="sub-title">SIREN Weights as Frequency Carriers</h3>
     <p>Consider what a SIREN weight matrix $\mathbf{W}_i$ actually does. The $j$-th output of layer $i$ computes
@@ -1650,9 +1727,9 @@
       represent 3D scenes with dramatically fewer parameters than current methods assume necessary.</p>
 
     <p>The losing ticket experiment also has a practical negative implication: magnitude-based pruning on SIRENs must be
-      done <em>carefully}. If you prune high-magnitude weights — as some aggressive pruning schedules do when removing
-        "outliers" — you risk frequency collapse rather than smooth compression. The safest pruning strategies for
-        periodic-activation networks are IMP (lowest magnitude) or random pruning, never highest-magnitude removal.</p>
+      done carefully. If you prune high-magnitude weights — as some aggressive pruning schedules do when removing
+      "outliers" — you risk frequency collapse rather than smooth compression. The safest pruning strategies for
+      periodic-activation networks are IMP (lowest magnitude) or random pruning, never highest-magnitude removal.</p>
 
     <div class="callout insight">
       <div class="callout-label">Open Question</div>
@@ -1801,7 +1878,8 @@
 
   <!-- ─── Footer ──────────────────────────────────────── -->
   <footer>
-    <p>© 2026 Neil D. &nbsp;·&nbsp; Trained on a GTX 1650 Ti (CUDA 12.1) &nbsp;·&nbsp; Built with SIREN &amp; PyTorch
+    <p>© 2026 Neil De La Fuente. &nbsp;·&nbsp; Trained on a GTX 1650 Ti (CUDA 12.1) &nbsp;·&nbsp; Built with SIREN &amp;
+      PyTorch
       &nbsp;·&nbsp;
       <a href="https://github.com/Neilus03/losingtickets">Source on GitHub ↗</a>
     </p>
@@ -1812,18 +1890,18 @@
   <script>
     // ─── Data ────────────────────────────────────────────
     const imageData = {
-      winner: ["winner/iter_01_remaining_100.0pct.png", "winner/iter_02_remaining_80.0pct.png", "winner/iter_03_remaining_64.0pct.png", "winner/iter_04_remaining_51.2pct.png", "winner/iter_05_remaining_41.0pct.png", "winner/iter_06_remaining_32.8pct.png", "winner/iter_07_remaining_26.2pct.png", "winner/iter_08_remaining_21.0pct.png", "winner/iter_09_remaining_16.8pct.png", "winner/iter_10_remaining_13.4pct.png", "winner/iter_11_remaining_10.7pct.png", "winner/iter_12_remaining_8.6pct.png", "winner/iter_13_remaining_6.9pct.png", "winner/iter_14_remaining_5.5pct.png", "winner/iter_15_remaining_4.4pct.png", "winner/iter_16_remaining_3.5pct.png", "winner/iter_17_remaining_2.8pct.png", "winner/iter_18_remaining_2.3pct.png"],
-      random: ["random/iter_01_remaining_100.0pct.png", "random/iter_02_remaining_80.0pct.png", "random/iter_03_remaining_64.0pct.png", "random/iter_04_remaining_51.2pct.png", "random/iter_05_remaining_41.0pct.png", "random/iter_06_remaining_32.8pct.png", "random/iter_07_remaining_26.2pct.png", "random/iter_08_remaining_21.0pct.png", "random/iter_09_remaining_16.8pct.png", "random/iter_10_remaining_13.4pct.png", "random/iter_11_remaining_10.7pct.png", "random/iter_12_remaining_8.6pct.png", "random/iter_13_remaining_6.9pct.png", "random/iter_14_remaining_5.5pct.png", "random/iter_15_remaining_4.4pct.png", "random/iter_16_remaining_3.5pct.png", "random/iter_17_remaining_2.8pct.png", "random/iter_18_remaining_2.3pct.png"],
-      loser: ["loser/iter_01_remaining_100.0pct.png", "loser/iter_02_remaining_80.0pct.png", "loser/iter_03_remaining_64.0pct.png", "loser/iter_04_remaining_51.2pct.png", "loser/iter_05_remaining_41.0pct.png", "loser/iter_06_remaining_32.8pct.png", "loser/iter_07_remaining_26.2pct.png", "loser/iter_08_remaining_21.0pct.png", "loser/iter_09_remaining_16.8pct.png", "loser/iter_10_remaining_13.4pct.png", "loser/iter_11_remaining_10.7pct.png", "loser/iter_12_remaining_8.6pct.png", "loser/iter_13_remaining_6.9pct.png", "loser/iter_14_remaining_5.5pct.png", "loser/iter_15_remaining_4.4pct.png", "loser/iter_16_remaining_3.5pct.png", "loser/iter_17_remaining_2.8pct.png", "loser/iter_18_remaining_2.3pct.png"]
+      winner: ["winner/iter_01_remaining_100.0pct.png", "winner/iter_02_remaining_80.0pct.png", "winner/iter_03_remaining_64.0pct.png", "winner/iter_04_remaining_51.2pct.png", "winner/iter_05_remaining_41.0pct.png", "winner/iter_06_remaining_32.8pct.png", "winner/iter_07_remaining_26.2pct.png", "winner/iter_08_remaining_21.0pct.png", "winner/iter_09_remaining_16.8pct.png", "winner/iter_10_remaining_13.4pct.png", "winner/iter_11_remaining_10.7pct.png", "winner/iter_12_remaining_8.6pct.png", "winner/iter_13_remaining_6.9pct.png", "winner/iter_14_remaining_5.5pct.png", "winner/iter_15_remaining_4.4pct.png", "winner/iter_16_remaining_3.5pct.png", "winner/iter_17_remaining_2.8pct.png", "winner/iter_18_remaining_2.3pct.png", "winner/iter_19_remaining_1.8pct.png", "winner/iter_20_remaining_1.4pct.png", "winner/iter_21_remaining_1.2pct.png"],
+      random: ["random/iter_01_remaining_100.0pct.png", "random/iter_02_remaining_80.0pct.png", "random/iter_03_remaining_64.0pct.png", "random/iter_04_remaining_51.2pct.png", "random/iter_05_remaining_41.0pct.png", "random/iter_06_remaining_32.8pct.png", "random/iter_07_remaining_26.2pct.png", "random/iter_08_remaining_21.0pct.png", "random/iter_09_remaining_16.8pct.png", "random/iter_10_remaining_13.4pct.png", "random/iter_11_remaining_10.7pct.png", "random/iter_12_remaining_8.6pct.png", "random/iter_13_remaining_6.9pct.png", "random/iter_14_remaining_5.5pct.png", "random/iter_15_remaining_4.4pct.png", "random/iter_16_remaining_3.5pct.png", "random/iter_17_remaining_2.8pct.png", "random/iter_18_remaining_2.3pct.png", "random/iter_19_remaining_1.8pct.png", "random/iter_20_remaining_1.4pct.png", "random/iter_21_remaining_1.2pct.png"],
+      loser: ["loser/iter_01_remaining_100.0pct.png", "loser/iter_02_remaining_80.0pct.png", "loser/iter_03_remaining_64.0pct.png", "loser/iter_04_remaining_51.2pct.png", "loser/iter_05_remaining_41.0pct.png", "loser/iter_06_remaining_32.8pct.png", "loser/iter_07_remaining_26.2pct.png", "loser/iter_08_remaining_21.0pct.png", "loser/iter_09_remaining_16.8pct.png", "loser/iter_10_remaining_13.4pct.png", "loser/iter_11_remaining_10.7pct.png", "loser/iter_12_remaining_8.6pct.png", "loser/iter_13_remaining_6.9pct.png", "loser/iter_14_remaining_5.5pct.png", "loser/iter_15_remaining_4.4pct.png", "loser/iter_16_remaining_3.5pct.png", "loser/iter_17_remaining_2.8pct.png", "loser/iter_18_remaining_2.3pct.png", "loser/iter_19_remaining_1.8pct.png", "loser/iter_20_remaining_1.4pct.png", "loser/iter_21_remaining_1.2pct.png"]
     };
 
     const psnrData = {
-      winner: [47.2897, 46.7485, 46.0048, 44.8965, 43.1529, 41.9001, 40.7621, 39.5306, 38.3638, 37.4336, 36.4858, 35.8401, 35.2580, 34.6804, 34.2725, 33.6860, 33.2437, 32.7340],
-      random: [47.5397, 44.1424, 41.8654, 39.9245, 38.3334, 37.3639, 36.2092, 35.3756, 34.7823, 33.7906, 33.3270, 32.4807, 31.6060, 30.5611, 29.2419, 27.2205, 24.4073, 23.6423],
-      loser: [47.6198, 29.3128, 11.4639, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234]
+      winner: [47.2897, 46.7485, 46.0048, 44.8965, 43.1529, 41.9001, 40.7621, 39.5306, 38.3638, 37.4336, 36.4858, 35.8401, 35.2580, 34.6804, 34.2725, 33.6860, 33.2437, 32.7340, 32.3242, 30.3897, 29.1825],
+      random: [47.5397, 44.1424, 41.8654, 39.9245, 38.3334, 37.3639, 36.2092, 35.3756, 34.7823, 33.7906, 33.3270, 32.4807, 31.6060, 30.5611, 29.2419, 27.2205, 24.4073, 23.6423, 21.2047, 13.5680, 12.9015],
+      loser: [47.6198, 29.3128, 11.4639, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.9017, 11.9017, 11.9017]
     };
 
-    const remaining = [100, 80, 64, 51.2, 41, 32.8, 26.2, 21, 16.8, 13.4, 10.7, 8.6, 6.9, 5.5, 4.4, 3.5, 2.8, 2.3];
+    const remaining = [100, 80, 64, 51.2, 41, 32.8, 26.2, 21, 16.8, 13.4, 10.7, 8.6, 6.9, 5.5, 4.4, 3.5, 2.8, 2.3, 1.8, 1.4, 1.2];
 
     // ─── Slider Update ───────────────────────────────────
     function updateImages() {
@@ -1851,7 +1929,7 @@
         datasets: [
           {
             label: 'Winner',
-            data: psnrData.winner,
+            data: psnrData.winner.map((v, i) => ({ x: remaining[i], y: v })),
             borderColor: '#00ffff', // Cyan matching the image
             backgroundColor: 'rgba(0, 255, 255, 0.08)',
             borderWidth: 3,
@@ -1862,7 +1940,7 @@
           },
           {
             label: 'Random',
-            data: psnrData.random,
+            data: psnrData.random.map((v, i) => ({ x: remaining[i], y: v })),
             borderColor: '#ffcc00', // Yellow matching the image
             backgroundColor: 'rgba(255, 204, 0, 0.08)',
             borderWidth: 3,
@@ -1873,7 +1951,7 @@
           },
           {
             label: 'Loser',
-            data: psnrData.loser,
+            data: psnrData.loser.map((v, i) => ({ x: remaining[i], y: v })),
             borderColor: '#ff3366', // Pink/Red matching the image
             backgroundColor: 'rgba(255, 51, 102, 0.08)',
             borderWidth: 3,
@@ -1907,7 +1985,7 @@
             type: 'logarithmic', // Makes the spacing match the image
             reverse: true, // With a logarithmic scale, 'reverse' correctly puts 100 (10^2) on the left
             grid: { color: 'rgba(255,255,255,0.1)', borderDash: [4, 4] },
-            min: 2, // Sets the minimum bound close to your 2.3%
+            min: 1, // Sets the minimum bound close to your 2.3%
             max: 100, // Sets the maximum bound to 100%
             ticks: {
               color: '#f0f2f8',
@@ -1924,6 +2002,7 @@
                 if (value === 10) return '10';
                 if (value === 5) return '5';
                 if (value === 2) return '2';
+                if (value === 1) return '1';
 
 
                 return null;
@@ -1957,6 +2036,44 @@
 
     // ─── Highlight.js ─────────────────────────────────────
     hljs.highlightAll();
+
+    // ─── Falling Tickets ──────────────────────────────────
+    function spawnTickets() {
+      const container = document.createElement('div');
+      container.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9999;';
+      document.body.appendChild(container);
+
+      const count = 40;
+      const luckyIndex = Math.floor(Math.random() * count);
+
+      for (let i = 0; i < count; i++) {
+        const t = document.createElement('div');
+        t.className = 'falling-ticket';
+        if (i === luckyIndex) {
+          t.classList.add('golden-ticket');
+        }
+
+        t.style.left = (Math.random() * 100) + 'vw';
+        t.style.animation = `ticketFall ${(Math.random() * 2 + 3.5)}s linear both`;
+        t.style.animationDelay = (Math.random() * 4) + 's';
+
+        // Random slight width variation
+        const scale = 0.8 + Math.random() * 0.4;
+        t.style.transform = `scale(${scale})`;
+
+        container.appendChild(t);
+      }
+
+      // Cleanup
+      setTimeout(() => {
+        container.remove();
+      }, 10000);
+    }
+
+    window.addEventListener('load', () => {
+      // Small delay to ensure everything else is loaded
+      setTimeout(spawnTickets, 400);
+    });
   </script>
 </body>
 
