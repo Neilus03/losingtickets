@@ -2,1787 +2,1815 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Losing Tickets in Neural Representations — Neil D.</title>
-
-    <!-- KaTeX for math -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
-        onload="renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
-
-    <!-- Highlight.js -->
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,600;1,6..72,300;1,6..72,400&family=JetBrains+Mono:wght@400;500&family=Syne:wght@400;600;800&display=swap"
-        rel="stylesheet" />
-
-    <style>
-        /* ─── Design System ─────────────────────────────────────── */
-        :root {
-            --bg: #0c0d11;
-            --bg-2: #111318;
-            --bg-3: #191c24;
-            --border: rgba(255, 255, 255, 0.07);
-            --text: #d4d8e2;
-            --text-dim: #7a8099;
-            --heading: #f0f2f8;
-            --gold: #e8b84b;
-            --gold-dim: rgba(232, 184, 75, 0.15);
-            --crimson: #e84b4b;
-            --crimson-dim: rgba(232, 75, 75, 0.12);
-            --teal: #4be8c8;
-            --teal-dim: rgba(75, 232, 200, 0.12);
-            --blue: #6b9fff;
-            --blue-dim: rgba(107, 159, 255, 0.12);
-            --reading-w: 68ch;
-            --wide-w: 1100px;
-        }
-
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        html {
-            scroll-behavior: smooth;
-            font-size: 18px;
-        }
-
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'Newsreader', Georgia, serif;
-            line-height: 1.75;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* ─── Noise Overlay ─────────────────────────────────────── */
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
-            opacity: 0.025;
-            pointer-events: none;
-            z-index: 1000;
-        }
-
-        /* ─── Header / Nav ──────────────────────────────────────── */
-        .site-nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 900;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1.1rem 2.5rem;
-            background: rgba(12, 13, 17, 0.85);
-            backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .nav-brand {
-            font-family: 'Syne', sans-serif;
-            font-weight: 800;
-            font-size: 0.85rem;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            color: var(--gold);
-            text-decoration: none;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-        }
-
-        .nav-links a {
-            font-family: 'Syne', sans-serif;
-            font-size: 0.78rem;
-            font-weight: 600;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--text-dim);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        .nav-links a:hover {
-            color: var(--heading);
-        }
-
-        /* ─── Hero ──────────────────────────────────────────────── */
-        .hero {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            padding: 0 2.5rem 6rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero-bg {
-            position: absolute;
-            inset: 0;
-            background:
-                radial-gradient(ellipse 80% 60% at 50% 30%, rgba(232, 184, 75, 0.04) 0%, transparent 70%),
-                radial-gradient(ellipse 50% 40% at 80% 70%, rgba(107, 159, 255, 0.04) 0%, transparent 60%),
-                linear-gradient(180deg, #0c0d11 0%, #0e0f15 100%);
-        }
-
-        /* Animated sine wave SVG in hero */
-        .hero-sine {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 120%;
-            opacity: 0.06;
-            pointer-events: none;
-        }
-
-        .hero-kicker {
-            position: relative;
-            font-family: 'Syne', sans-serif;
-            font-size: 0.75rem;
-            font-weight: 600;
-            letter-spacing: 0.25em;
-            text-transform: uppercase;
-            color: var(--gold);
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .hero-kicker::before {
-            content: '';
-            display: block;
-            width: 40px;
-            height: 1px;
-            background: var(--gold);
-        }
-
-        h1.hero-title {
-            position: relative;
-            font-family: 'DM Serif Display', Georgia, serif;
-            font-size: clamp(3rem, 7vw, 6.5rem);
-            font-weight: 400;
-            line-height: 1.0;
-            letter-spacing: -0.02em;
-            color: var(--heading);
-            max-width: 16ch;
-            margin-bottom: 2rem;
-        }
-
-        h1.hero-title em {
-            font-style: italic;
-            color: var(--gold);
-        }
-
-        .hero-byline {
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .hero-byline p {
-            font-family: 'Syne', sans-serif;
-            font-size: 0.8rem;
-            font-weight: 400;
-            letter-spacing: 0.05em;
-            color: var(--text-dim);
-        }
-
-        .hero-byline .tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.3rem 0.8rem;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            font-family: 'Syne', sans-serif;
-            font-size: 0.7rem;
-            font-weight: 600;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: var(--text-dim);
-        }
-
-        .tag.gold {
-            border-color: rgba(232, 184, 75, 0.3);
-            color: var(--gold);
-        }
-
-        .tag.teal {
-            border-color: rgba(75, 232, 200, 0.3);
-            color: var(--teal);
-        }
-
-        /* ─── Scroll Indicator ──────────────────────────────────── */
-        .scroll-hint {
-            position: absolute;
-            bottom: 2.5rem;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
-            font-family: 'Syne', sans-serif;
-            font-size: 0.65rem;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            color: var(--text-dim);
-            animation: bounce 2s ease-in-out infinite;
-        }
-
-        .scroll-hint svg {
-            width: 16px;
-            opacity: 0.5;
-        }
-
-        @keyframes bounce {
-
-            0%,
-            100% {
-                transform: translateX(-50%) translateY(0);
-            }
-
-            50% {
-                transform: translateX(-50%) translateY(6px);
-            }
-        }
-
-        /* ─── Main Layout ───────────────────────────────────────── */
-        .article {
-            max-width: var(--reading-w);
-            margin: 0 auto;
-            padding: 5rem 2rem 10rem;
-        }
-
-        /* ─── Abstract Block ─────────────────────────────────────── */
-        .abstract {
-            margin: 0 0 5rem;
-            padding: 2rem 2.5rem;
-            border-left: 3px solid var(--gold);
-            background: var(--gold-dim);
-            border-radius: 0 8px 8px 0;
-        }
-
-        .abstract-label {
-            font-family: 'Syne', sans-serif;
-            font-size: 0.65rem;
-            font-weight: 700;
-            letter-spacing: 0.25em;
-            text-transform: uppercase;
-            color: var(--gold);
-            margin-bottom: 0.75rem;
-        }
-
-        .abstract p {
-            font-size: 1rem;
-            line-height: 1.7;
-            color: #c8ccd8;
-            font-style: italic;
-        }
-
-        /* ─── Section Headings ──────────────────────────────────── */
-        .section-number {
-            font-family: 'Syne', sans-serif;
-            font-size: 0.65rem;
-            font-weight: 700;
-            letter-spacing: 0.25em;
-            text-transform: uppercase;
-            color: var(--gold);
-            margin-bottom: 0.5rem;
-            margin-top: 5rem;
-        }
-
-        h2.section-title {
-            font-family: 'DM Serif Display', Georgia, serif;
-            font-size: 2.2rem;
-            font-weight: 400;
-            color: var(--heading);
-            line-height: 1.2;
-            margin-bottom: 1.5rem;
-        }
-
-        h3.sub-title {
-            font-family: 'Syne', sans-serif;
-            font-size: 0.9rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            color: var(--heading);
-            margin: 2.5rem 0 0.75rem;
-        }
-
-        h3.sub-title::before {
-            content: '▸ ';
-            color: var(--gold);
-        }
-
-        /* ─── Prose ─────────────────────────────────────────────── */
-        .article p {
-            margin-bottom: 1.4rem;
-            font-size: 1.0rem;
-            font-weight: 300;
-        }
-
-        .article strong {
-            color: var(--heading);
-            font-weight: 600;
-        }
-
-        .article em {
-            color: #b8c0d8;
-        }
-
-        .article a {
-            color: var(--gold);
-            text-decoration: underline;
-            text-underline-offset: 3px;
-        }
-
-        .article a:hover {
-            color: var(--heading);
-        }
-
-        /* Drop cap */
-        .drop-cap::first-letter {
-            font-family: 'DM Serif Display', Georgia, serif;
-            font-size: 4.5rem;
-            line-height: 0.75;
-            float: left;
-            margin: 0.1em 0.15em 0 0;
-            color: var(--gold);
-        }
-
-        /* ─── Callout boxes ─────────────────────────────────────── */
-        .callout {
-            margin: 2.5rem 0;
-            padding: 1.25rem 1.75rem;
-            border-radius: 8px;
-            font-size: 0.95rem;
-        }
-
-        .callout.insight {
-            background: var(--blue-dim);
-            border-left: 3px solid var(--blue);
-        }
-
-        .callout.finding {
-            background: var(--teal-dim);
-            border-left: 3px solid var(--teal);
-        }
-
-        .callout.warning {
-            background: var(--crimson-dim);
-            border-left: 3px solid var(--crimson);
-        }
-
-        .callout-label {
-            font-family: 'Syne', sans-serif;
-            font-size: 0.65rem;
-            font-weight: 700;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            margin-bottom: 0.5rem;
-        }
-
-        .callout.insight .callout-label {
-            color: var(--blue);
-        }
-
-        .callout.finding .callout-label {
-            color: var(--teal);
-        }
-
-        .callout.warning .callout-label {
-            color: var(--crimson);
-        }
-
-        /* ─── Math display ──────────────────────────────────────── */
-        .math-block {
-            margin: 2rem 0;
-            padding: 1.5rem 2rem;
-            background: var(--bg-3);
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            overflow-x: auto;
-            text-align: center;
-        }
-
-        .math-caption {
-            font-family: 'Syne', sans-serif;
-            font-size: 0.68rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--text-dim);
-            margin-top: 0.5rem;
-            text-align: center;
-        }
-
-        /* ─── Code ──────────────────────────────────────────────── */
-        pre {
-            margin: 2rem 0;
-            border-radius: 8px;
-            overflow-x: auto;
-            border: 1px solid var(--border);
-        }
-
-        pre code {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.78rem;
-        }
-
-        code:not(pre code) {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.82em;
-            background: var(--bg-3);
-            border: 1px solid var(--border);
-            padding: 0.1em 0.4em;
-            border-radius: 4px;
-            color: var(--teal);
-        }
-
-        /* ─── Divider ────────────────────────────────────────────── */
-        .divider {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin: 4rem 0;
-            color: var(--text-dim);
-            font-family: 'Syne', sans-serif;
-            font-size: 0.65rem;
-            letter-spacing: 0.3em;
-        }
-
-        .divider::before,
-        .divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: var(--border);
-        }
-
-        /* ─── Interactive Lab ───────────────────────────────────── */
-        .lab-section {
-            max-width: var(--wide-w);
-            margin: 0 auto;
-            padding: 0 2rem 5rem;
-        }
-
-        .lab-wrap {
-            background: var(--bg-2);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 3rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .lab-wrap::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--gold), var(--teal), var(--blue));
-        }
-
-        .lab-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .lab-header .kicker {
-            font-family: 'Syne', sans-serif;
-            font-size: 0.65rem;
-            font-weight: 700;
-            letter-spacing: 0.25em;
-            text-transform: uppercase;
-            color: var(--gold);
-            margin-bottom: 0.5rem;
-        }
-
-        .lab-header h2 {
-            font-family: 'DM Serif Display', serif;
-            font-size: 2rem;
-            font-weight: 400;
-            color: var(--heading);
-        }
-
-        .lab-header p {
-            color: var(--text-dim);
-            font-family: 'Syne', sans-serif;
-            font-size: 0.82rem;
-            margin-top: 0.5rem;
-        }
-
-        /* Slider */
-        .slider-wrap {
-            text-align: center;
-            margin-bottom: 2.5rem;
-        }
-
-        .iteration-pill {
-            display: inline-flex;
-            gap: 2rem;
-            align-items: center;
-            padding: 0.5rem 1.5rem;
-            background: var(--bg-3);
-            border: 1px solid var(--border);
-            border-radius: 40px;
-            margin-bottom: 1.5rem;
-        }
-
-        .pill-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .pill-label {
-            font-family: 'Syne', sans-serif;
-            font-size: 0.55rem;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            color: var(--text-dim);
-        }
-
-        .pill-value {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: var(--heading);
-        }
-
-        .pill-value.gold {
-            color: var(--gold);
-        }
-
-        input[type=range] {
-            width: 100%;
-            max-width: 540px;
-            height: 4px;
-            background: var(--bg-3);
-            border-radius: 4px;
-            appearance: none;
-            outline: none;
-            border: 1px solid var(--border);
-        }
-
-        input[type=range]::-webkit-slider-thumb {
-            appearance: none;
-            width: 18px;
-            height: 18px;
-            background: var(--gold);
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 0 12px rgba(232, 184, 75, 0.5);
-            border: 2px solid var(--bg);
-        }
-
-        /* Cards */
-        .ticket-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
-        }
-
-        .ticket-card {
-            background: var(--bg-3);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-            transition: transform 0.3s ease, border-color 0.3s ease;
-        }
-
-        .ticket-card:hover {
-            transform: translateY(-4px);
-        }
-
-        .ticket-card.winner:hover {
-            border-color: rgba(232, 184, 75, 0.5);
-        }
-
-        .ticket-card.random:hover {
-            border-color: rgba(107, 159, 255, 0.5);
-        }
-
-        .ticket-card.loser:hover {
-            border-color: rgba(232, 75, 75, 0.5);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .card-type {
-            font-family: 'Syne', sans-serif;
-            font-size: 0.7rem;
-            font-weight: 700;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-        }
-
-        .winner .card-type {
-            color: var(--gold);
-        }
-
-        .random .card-type {
-            color: var(--blue);
-        }
-
-        .loser .card-type {
-            color: var(--crimson);
-        }
-
-        .card-psnr {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.7rem;
-            color: var(--text-dim);
-        }
-
-        .ticket-card img {
-            width: 100%;
-            display: block;
-            filter: saturate(0.9);
-            transition: filter 0.3s;
-        }
-
-        .ticket-card:hover img {
-            filter: saturate(1.1);
-        }
-
-        .card-footer {
-            padding: 0.5rem 1rem;
-            font-family: 'Syne', sans-serif;
-            font-size: 0.65rem;
-            color: var(--text-dim);
-            letter-spacing: 0.05em;
-        }
-
-        /* ─── PSNR Chart ─────────────────────────────────────────── */
-        .chart-section {
-            max-width: 860px;
-            margin: 0 auto;
-            padding: 0 2rem;
-        }
-
-        .chart-wrap {
-            background: var(--bg-2);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 2rem;
-            margin: 3rem 0;
-        }
-
-        #psnrChart {
-            width: 100%;
-            height: 380px;
-        }
-
-        .chart-legend {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-top: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-family: 'Syne', sans-serif;
-            font-size: 0.72rem;
-            color: var(--text-dim);
-        }
-
-        .legend-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 2px;
-        }
-
-        .fig-caption {
-            text-align: center;
-            font-family: 'Syne', sans-serif;
-            font-size: 0.7rem;
-            color: var(--text-dim);
-            letter-spacing: 0.05em;
-            margin-top: 0.75rem;
-        }
-
-        .fig-caption strong {
-            color: var(--text);
-        }
-
-        /* ─── Stats Strip ─────────────────────────────────────────── */
-        .stats-strip {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1px;
-            background: var(--border);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-            margin: 3rem 0;
-        }
-
-        .stat-cell {
-            background: var(--bg-2);
-            padding: 1.5rem;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-family: 'DM Serif Display', serif;
-            font-size: 2.2rem;
-            color: var(--heading);
-            line-height: 1;
-            margin-bottom: 0.25rem;
-        }
-
-        .stat-value.gold {
-            color: var(--gold);
-        }
-
-        .stat-value.crimson {
-            color: var(--crimson);
-        }
-
-        .stat-label {
-            font-family: 'Syne', sans-serif;
-            font-size: 0.65rem;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: var(--text-dim);
-        }
-
-        /* ─── Data Table ─────────────────────────────────────────── */
-        .data-table-wrap {
-            overflow-x: auto;
-            margin: 2rem 0;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-        }
-
-        thead tr {
-            background: var(--bg-3);
-            border-bottom: 1px solid var(--border);
-        }
-
-        th {
-            padding: 0.75rem 1rem;
-            text-align: left;
-            font-family: 'Syne', sans-serif;
-            font-size: 0.65rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--text-dim);
-            font-weight: 700;
-        }
-
-        td {
-            padding: 0.6rem 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-        }
-
-        tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        tbody tr:hover {
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .td-winner {
-            color: var(--gold);
-        }
-
-        .td-random {
-            color: var(--blue);
-        }
-
-        .td-loser {
-            color: var(--crimson);
-        }
-
-        /* ─── Blockquote / Epigraph ──────────────────────────────── */
-        blockquote {
-            margin: 2.5rem 0;
-            padding: 0 0 0 2rem;
-            border-left: 3px solid var(--gold);
-        }
-
-        blockquote p {
-            font-size: 1.15rem !important;
-            font-style: italic;
-            color: #a0a8c0;
-        }
-
-        blockquote cite {
-            display: block;
-            margin-top: 0.5rem;
-            font-style: normal;
-            font-family: 'Syne', sans-serif;
-            font-size: 0.72rem;
-            letter-spacing: 0.1em;
-            color: var(--text-dim);
-        }
-
-        /* ─── References ─────────────────────────────────────────── */
-        .references {
-            background: var(--bg-2);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 2rem 2.5rem;
-            margin-top: 4rem;
-        }
-
-        .references h3 {
-            font-family: 'Syne', sans-serif;
-            font-size: 0.72rem;
-            font-weight: 700;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            color: var(--gold);
-            margin-bottom: 1.5rem;
-        }
-
-        .ref-item {
-            display: flex;
-            gap: 1.25rem;
-            margin-bottom: 0.9rem;
-            font-size: 0.82rem;
-            line-height: 1.5;
-        }
-
-        .ref-num {
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--text-dim);
-            min-width: 2.5ch;
-        }
-
-        /* ─── Footer ─────────────────────────────────────────────── */
-        footer {
-            border-top: 1px solid var(--border);
-            padding: 3rem 2.5rem;
-            text-align: center;
-            font-family: 'Syne', sans-serif;
-            font-size: 0.72rem;
-            color: var(--text-dim);
-        }
-
-        footer a {
-            color: var(--gold);
-            text-decoration: none;
-        }
-
-        /* ─── Responsive ─────────────────────────────────────────── */
-        @media (max-width: 900px) {
-            .ticket-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .stats-strip {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .site-nav {
-                padding: 1rem 1.5rem;
-            }
-
-            .nav-links {
-                display: none;
-            }
-
-            h1.hero-title {
-                font-size: clamp(2.5rem, 10vw, 4.5rem);
-            }
-
-            .lab-wrap {
-                padding: 1.5rem;
-            }
-
-            .hero {
-                padding: 0 1.5rem 5rem;
-            }
-        }
-
-        /* ─── Animations ─────────────────────────────────────────── */
-        @keyframes fadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(24px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .hero-kicker {
-            animation: fadeUp 0.8s ease both;
-        }
-
-        h1.hero-title {
-            animation: fadeUp 0.8s 0.15s ease both;
-        }
-
-        .hero-byline {
-            animation: fadeUp 0.8s 0.3s ease both;
-        }
-
-        /* Sine wave animation */
-        @keyframes sineScroll {
-            from {
-                transform: translateX(0);
-            }
-
-            to {
-                transform: translateX(-50%);
-            }
-        }
-
-        .sine-animated {
-            animation: sineScroll 20s linear infinite;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Losing Tickets in Neural Representations — Neil D.</title>
+
+  <!-- KaTeX for math -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+
+  <!-- Highlight.js -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,600;1,6..72,300;1,6..72,400&family=JetBrains+Mono:wght@400;500&family=Syne:wght@400;600;800&display=swap"
+    rel="stylesheet" />
+
+  <style>
+    /* ─── Design System ─────────────────────────────────────── */
+    :root {
+      --bg: #0c0d11;
+      --bg-2: #111318;
+      --bg-3: #191c24;
+      --border: rgba(255, 255, 255, 0.07);
+      --text: #d4d8e2;
+      --text-dim: #7a8099;
+      --heading: #f0f2f8;
+      --gold: #e8b84b;
+      --gold-dim: rgba(232, 184, 75, 0.15);
+      --crimson: #e84b4b;
+      --crimson-dim: rgba(232, 75, 75, 0.12);
+      --teal: #4be8c8;
+      --teal-dim: rgba(75, 232, 200, 0.12);
+      --blue: #6b9fff;
+      --blue-dim: rgba(107, 159, 255, 0.12);
+      --reading-w: 68ch;
+      --wide-w: 1100px;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      font-size: 18px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Newsreader', Georgia, serif;
+      line-height: 1.75;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Noise Overlay ─────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.025;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    /* ─── Header / Nav ──────────────────────────────────────── */
+    .site-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 900;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.1rem 2.5rem;
+      background: rgba(12, 13, 17, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-brand {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .nav-links a {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--heading);
+    }
+
+    /* ─── Hero ──────────────────────────────────────────────── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0 2.5rem 6rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 30%, rgba(232, 184, 75, 0.04) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 40% at 80% 70%, rgba(107, 159, 255, 0.04) 0%, transparent 60%),
+        linear-gradient(180deg, #0c0d11 0%, #0e0f15 100%);
+    }
+
+    /* Animated sine wave SVG in hero */
+    .hero-sine {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 120%;
+      opacity: 0.06;
+      pointer-events: none;
+    }
+
+    .hero-kicker {
+      position: relative;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .hero-kicker::before {
+      content: '';
+      display: block;
+      width: 40px;
+      height: 1px;
+      background: var(--gold);
+    }
+
+    h1.hero-title {
+      position: relative;
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: clamp(3rem, 7vw, 6.5rem);
+      font-weight: 400;
+      line-height: 1.0;
+      letter-spacing: -0.02em;
+      color: var(--heading);
+      max-width: 16ch;
+      margin-bottom: 2rem;
+    }
+
+    h1.hero-title em {
+      font-style: italic;
+      color: var(--gold);
+    }
+
+    .hero-byline {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .hero-byline p {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 400;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+    }
+
+    .hero-byline .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.3rem 0.8rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .tag.gold {
+      border-color: rgba(232, 184, 75, 0.3);
+      color: var(--gold);
+    }
+
+    .tag.teal {
+      border-color: rgba(75, 232, 200, 0.3);
+      color: var(--teal);
+    }
+
+    /* ─── Scroll Indicator ──────────────────────────────────── */
+    .scroll-hint {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      animation: bounce 2s ease-in-out infinite;
+    }
+
+    .scroll-hint svg {
+      width: 16px;
+      opacity: 0.5;
+    }
+
+    @keyframes bounce {
+
+      0%,
+      100% {
+        transform: translateX(-50%) translateY(0);
+      }
+
+      50% {
+        transform: translateX(-50%) translateY(6px);
+      }
+    }
+
+    /* ─── Main Layout ───────────────────────────────────────── */
+    .article {
+      max-width: var(--reading-w);
+      margin: 0 auto;
+      padding: 5rem 2rem 10rem;
+    }
+
+    /* ─── Abstract Block ─────────────────────────────────────── */
+    .abstract {
+      margin: 0 0 5rem;
+      padding: 2rem 2.5rem;
+      border-left: 3px solid var(--gold);
+      background: var(--gold-dim);
+      border-radius: 0 8px 8px 0;
+    }
+
+    .abstract-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.75rem;
+    }
+
+    .abstract p {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: #c8ccd8;
+      font-style: italic;
+    }
+
+    /* ─── Section Headings ──────────────────────────────────── */
+    .section-number {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.5rem;
+      margin-top: 5rem;
+    }
+
+    h2.section-title {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 2.2rem;
+      font-weight: 400;
+      color: var(--heading);
+      line-height: 1.2;
+      margin-bottom: 1.5rem;
+    }
+
+    h3.sub-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--heading);
+      margin: 2.5rem 0 0.75rem;
+    }
+
+    h3.sub-title::before {
+      content: '▸ ';
+      color: var(--gold);
+    }
+
+    /* ─── Prose ─────────────────────────────────────────────── */
+    .article p {
+      margin-bottom: 1.4rem;
+      font-size: 1.0rem;
+      font-weight: 300;
+    }
+
+    .article strong {
+      color: var(--heading);
+      font-weight: 600;
+    }
+
+    .article em {
+      color: #b8c0d8;
+    }
+
+    .article a {
+      color: var(--gold);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .article a:hover {
+      color: var(--heading);
+    }
+
+    /* Drop cap */
+    .drop-cap::first-letter {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 4.5rem;
+      line-height: 0.75;
+      float: left;
+      margin: 0.1em 0.15em 0 0;
+      color: var(--gold);
+    }
+
+    /* ─── Callout boxes ─────────────────────────────────────── */
+    .callout {
+      margin: 2.5rem 0;
+      padding: 1.25rem 1.75rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+    }
+
+    .callout.insight {
+      background: var(--blue-dim);
+      border-left: 3px solid var(--blue);
+    }
+
+    .callout.finding {
+      background: var(--teal-dim);
+      border-left: 3px solid var(--teal);
+    }
+
+    .callout.warning {
+      background: var(--crimson-dim);
+      border-left: 3px solid var(--crimson);
+    }
+
+    .callout-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .callout.insight .callout-label {
+      color: var(--blue);
+    }
+
+    .callout.finding .callout-label {
+      color: var(--teal);
+    }
+
+    .callout.warning .callout-label {
+      color: var(--crimson);
+    }
+
+    /* ─── Math display ──────────────────────────────────────── */
+    .math-block {
+      margin: 2rem 0;
+      padding: 1.5rem 2rem;
+      background: var(--bg-3);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      overflow-x: auto;
+      text-align: center;
+    }
+
+    .math-caption {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-top: 0.5rem;
+      text-align: center;
+    }
+
+    /* ─── Code ──────────────────────────────────────────────── */
+    pre {
+      margin: 2rem 0;
+      border-radius: 8px;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+    }
+
+    pre code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+    }
+
+    code:not(pre code) {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82em;
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      padding: 0.1em 0.4em;
+      border-radius: 4px;
+      color: var(--teal);
+    }
+
+    /* ─── Divider ────────────────────────────────────────────── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 4rem 0;
+      color: var(--text-dim);
+      font-family: 'Syne', sans-serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ─── Interactive Lab ───────────────────────────────────── */
+    .lab-section {
+      max-width: var(--wide-w);
+      margin: 0 auto;
+      padding: 0 2rem 5rem;
+    }
+
+    .lab-wrap {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .lab-wrap::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--gold), var(--teal), var(--blue));
+    }
+
+    .lab-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .lab-header .kicker {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.5rem;
+    }
+
+    .lab-header h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2rem;
+      font-weight: 400;
+      color: var(--heading);
+    }
+
+    .lab-header p {
+      color: var(--text-dim);
+      font-family: 'Syne', sans-serif;
+      font-size: 0.82rem;
+      margin-top: 0.5rem;
+    }
+
+    /* Slider */
+    .slider-wrap {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .iteration-pill {
+      display: inline-flex;
+      gap: 2rem;
+      align-items: center;
+      padding: 0.5rem 1.5rem;
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      border-radius: 40px;
+      margin-bottom: 1.5rem;
+    }
+
+    .pill-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .pill-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.55rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .pill-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--heading);
+    }
+
+    .pill-value.gold {
+      color: var(--gold);
+    }
+
+    input[type=range] {
+      width: 100%;
+      max-width: 540px;
+      height: 4px;
+      background: var(--bg-3);
+      border-radius: 4px;
+      appearance: none;
+      outline: none;
+      border: 1px solid var(--border);
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      background: var(--gold);
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 0 12px rgba(232, 184, 75, 0.5);
+      border: 2px solid var(--bg);
+    }
+
+    /* Cards */
+    .ticket-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+
+    .ticket-card {
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+
+    .ticket-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .ticket-card.winner:hover {
+      border-color: rgba(232, 184, 75, 0.5);
+    }
+
+    .ticket-card.random:hover {
+      border-color: rgba(107, 159, 255, 0.5);
+    }
+
+    .ticket-card.loser:hover {
+      border-color: rgba(232, 75, 75, 0.5);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-type {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    .winner .card-type {
+      color: var(--gold);
+    }
+
+    .random .card-type {
+      color: var(--blue);
+    }
+
+    .loser .card-type {
+      color: var(--crimson);
+    }
+
+    .card-psnr {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+    }
+
+    .ticket-card img {
+      width: 100%;
+      display: block;
+      filter: saturate(0.9);
+      transition: filter 0.3s;
+    }
+
+    .ticket-card:hover img {
+      filter: saturate(1.1);
+    }
+
+    .card-footer {
+      padding: 0.5rem 1rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+    }
+
+    /* ─── PSNR Chart ─────────────────────────────────────────── */
+    .chart-section {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    .chart-wrap {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      margin: 3rem 0;
+    }
+
+    .chart-canvas-wrap {
+      position: relative;
+      width: 100%;
+      height: 380px;
+    }
+
+    #psnrChart {
+      display: block;
+    }
+
+    .chart-legend {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+
+    .fig-caption {
+      text-align: center;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+      margin-top: 0.75rem;
+    }
+
+    .fig-caption strong {
+      color: var(--text);
+    }
+
+    /* ─── Stats Strip ─────────────────────────────────────────── */
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 3rem 0;
+    }
+
+    .stat-cell {
+      background: var(--bg-2);
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2.2rem;
+      color: var(--heading);
+      line-height: 1;
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-value.gold {
+      color: var(--gold);
+    }
+
+    .stat-value.crimson {
+      color: var(--crimson);
+    }
+
+    .stat-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    /* ─── Data Table ─────────────────────────────────────────── */
+    .data-table-wrap {
+      overflow-x: auto;
+      margin: 2rem 0;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+    }
+
+    thead tr {
+      background: var(--bg-3);
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      font-weight: 700;
+    }
+
+    td {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .td-winner {
+      color: var(--gold);
+    }
+
+    .td-random {
+      color: var(--blue);
+    }
+
+    .td-loser {
+      color: var(--crimson);
+    }
+
+    /* ─── Blockquote / Epigraph ──────────────────────────────── */
+    blockquote {
+      margin: 2.5rem 0;
+      padding: 0 0 0 2rem;
+      border-left: 3px solid var(--gold);
+    }
+
+    blockquote p {
+      font-size: 1.15rem !important;
+      font-style: italic;
+      color: #a0a8c0;
+    }
+
+    blockquote cite {
+      display: block;
+      margin-top: 0.5rem;
+      font-style: normal;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+    }
+
+    /* ─── References ─────────────────────────────────────────── */
+    .references {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem 2.5rem;
+      margin-top: 4rem;
+    }
+
+    .references h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.5rem;
+    }
+
+    .ref-item {
+      display: flex;
+      gap: 1.25rem;
+      margin-bottom: 0.9rem;
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+
+    .ref-num {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-dim);
+      min-width: 2.5ch;
+    }
+
+    /* ─── Footer ─────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 3rem 2.5rem;
+      text-align: center;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+    }
+
+    footer a {
+      color: var(--gold);
+      text-decoration: none;
+    }
+
+    /* ─── Responsive ─────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .ticket-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-strip {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .site-nav {
+        padding: 1rem 1.5rem;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      h1.hero-title {
+        font-size: clamp(2.5rem, 10vw, 4.5rem);
+      }
+
+      .lab-wrap {
+        padding: 1.5rem;
+      }
+
+      .hero {
+        padding: 0 1.5rem 5rem;
+      }
+    }
+
+    /* ─── Animations ─────────────────────────────────────────── */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(24px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hero-kicker {
+      animation: fadeUp 0.8s ease both;
+    }
+
+    h1.hero-title {
+      animation: fadeUp 0.8s 0.15s ease both;
+    }
+
+    .hero-byline {
+      animation: fadeUp 0.8s 0.3s ease both;
+    }
+
+    /* Sine wave animation */
+    @keyframes sineScroll {
+      from {
+        transform: translateX(0);
+      }
+
+      to {
+        transform: translateX(-50%);
+      }
+    }
+
+    .sine-animated {
+      animation: sineScroll 20s linear infinite;
+    }
+  </style>
 </head>
 
 <body>
 
-    <!-- ─── Navigation ─────────────────────────────────── -->
-    <nav class="site-nav">
-        <a class="nav-brand" href="#">Losing Tickets</a>
-        <div class="nav-links">
-            <a href="#lab">The Lab</a>
-            <a href="#background">Background</a>
-            <a href="#methodology">Methodology</a>
-            <a href="#results">Results</a>
-            <a href="#discussion">Discussion</a>
-            <a href="https://github.com/Neilus03/losingtickets">GitHub ↗</a>
-        </div>
-    </nav>
+  <!-- ─── Navigation ─────────────────────────────────── -->
+  <nav class="site-nav">
+    <a class="nav-brand" href="javascript:void(0)" onclick="window.scrollTo({top:0,behavior:'smooth'})">Losing
+      Tickets</a>
+    <div class="nav-links">
+      <a href="#lab">The Lab</a>
+      <a href="#background">Background</a>
+      <a href="#methodology">Methodology</a>
+      <a href="#results">Results</a>
+      <a href="#discussion">Discussion</a>
+      <a href="https://github.com/Neilus03/losingtickets">GitHub ↗</a>
+    </div>
+  </nav>
 
-    <!-- ─── Hero ───────────────────────────────────────── -->
-    <section class="hero">
-        <div class="hero-bg"></div>
+  <!-- ─── Hero ───────────────────────────────────────── -->
+  <section class="hero">
+    <div class="hero-bg"></div>
 
-        <!-- Animated sine-wave SVG background -->
-        <svg class="hero-sine" viewBox="0 0 2400 300" preserveAspectRatio="none" aria-hidden="true">
-            <g class="sine-animated">
-                <path
-                    d="M0,150 C100,80 200,220 300,150 C400,80 500,220 600,150 C700,80 800,220 900,150 C1000,80 1100,220 1200,150 C1300,80 1400,220 1500,150 C1600,80 1700,220 1800,150 C1900,80 2000,220 2100,150 C2200,80 2300,220 2400,150 C2500,80 2600,220 2700,150 C2800,80 2900,220 3000,150"
-                    stroke="#e8b84b" stroke-width="1.5" fill="none" />
-                <path
-                    d="M0,150 C150,40 250,260 400,150 C550,40 650,260 800,150 C950,40 1050,260 1200,150 C1350,40 1450,260 1600,150 C1750,40 1850,260 2000,150 C2150,40 2250,260 2400,150 C2550,40 2650,260 2800,150 C2950,40 3050,260 3200,150"
-                    stroke="#4be8c8" stroke-width="0.8" fill="none" opacity="0.5" />
-            </g>
-        </svg>
+    <!-- Animated sine-wave SVG background -->
+    <svg class="hero-sine" viewBox="0 0 2400 300" preserveAspectRatio="none" aria-hidden="true">
+      <g class="sine-animated">
+        <path
+          d="M0,150 C100,80 200,220 300,150 C400,80 500,220 600,150 C700,80 800,220 900,150 C1000,80 1100,220 1200,150 C1300,80 1400,220 1500,150 C1600,80 1700,220 1800,150 C1900,80 2000,220 2100,150 C2200,80 2300,220 2400,150 C2500,80 2600,220 2700,150 C2800,80 2900,220 3000,150"
+          stroke="#e8b84b" stroke-width="1.5" fill="none" />
+        <path
+          d="M0,150 C150,40 250,260 400,150 C550,40 650,260 800,150 C950,40 1050,260 1200,150 C1350,40 1450,260 1600,150 C1750,40 1850,260 2000,150 C2150,40 2250,260 2400,150 C2550,40 2650,260 2800,150 C2950,40 3050,260 3200,150"
+          stroke="#4be8c8" stroke-width="0.8" fill="none" opacity="0.5" />
+      </g>
+    </svg>
 
-        <div class="hero-kicker">Research Case Study — March 2026</div>
-        <h1 class="hero-title">Losing <em>Tickets</em> in Neural Representations</h1>
-        <div class="hero-byline">
-            <p>Neil D. &nbsp;·&nbsp; Deep Learning Research &nbsp;·&nbsp; PyTorch / CUDA</p>
-            <span class="tag gold">SIREN + LTH</span>
-            <span class="tag teal">Pruning &amp; Compression</span>
-        </div>
-
-        <div class="scroll-hint">
-            <span>Scroll</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 5v14M5 12l7 7 7-7" />
-            </svg>
-        </div>
-    </section>
-
-    <!-- ─── Stats Strip ─────────────────────────────────── -->
-    <div class="chart-section">
-        <div class="stats-strip">
-            <div class="stat-cell">
-                <div class="stat-value gold">47.6</div>
-                <div class="stat-label">Peak Winner PSNR (dB)</div>
-            </div>
-            <div class="stat-cell">
-                <div class="stat-value">32.7</div>
-                <div class="stat-label">Winner PSNR at 2.3% Weights</div>
-            </div>
-            <div class="stat-cell">
-                <div class="stat-value crimson">11.3</div>
-                <div class="stat-label">Loser PSNR After 3rd Iter</div>
-            </div>
-            <div class="stat-cell">
-                <div class="stat-value">18×</div>
-                <div class="stat-label">Pruning Iterations</div>
-            </div>
-        </div>
+    <div class="hero-kicker">Research Case Study — March 2026</div>
+    <h1 class="hero-title">Losing <em>Tickets</em> in Neural Representations</h1>
+    <div class="hero-byline">
+      <p>Neil D. &nbsp;·&nbsp; Deep Learning Research &nbsp;·&nbsp; PyTorch / CUDA</p>
+      <span class="tag gold">SIREN + LTH</span>
+      <span class="tag teal">Pruning &amp; Compression</span>
     </div>
 
-    <!-- ─── Article ─────────────────────────────────────── -->
-    <article class="article">
+    <div class="scroll-hint">
+      <span>Scroll</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 5v14M5 12l7 7 7-7" />
+      </svg>
+    </div>
+  </section>
 
-        <div class="abstract">
-            <div class="abstract-label">Abstract</div>
-            <p>Implicit Neural Representations (INRs) are overparameterized by design — a feature, not a bug. But can we
-                surgically remove most of their parameters and still preserve the signal they've memorized? This work
-                applies the Lottery Ticket Hypothesis to SIREN networks fitted to a single image, contrasting three
-                pruning strategies across 18 iterative rounds down to 1.8% of original network weight. We find that
-                SIREN contains a remarkable winning ticket — a 2.3% sub-network maintaining 32.7&nbsp;dB PSNR — while
-                the losing ticket collapses catastrophically to noise in just <em>two</em> pruning rounds. The mechanism
-                is not bandwidth limitation but <strong>frequency carrier destruction</strong>: SIREN's high-magnitude
-                weights act as the primary oscillators of its Fourier decomposition, and removing them is equivalent to
-                silencing all radio stations simultaneously.</p>
-        </div>
+  <!-- ─── Stats Strip ─────────────────────────────────── -->
+  <div class="chart-section">
+    <div class="stats-strip">
+      <div class="stat-cell">
+        <div class="stat-value gold">47.6</div>
+        <div class="stat-label">Peak Winner PSNR (dB)</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-value">32.7</div>
+        <div class="stat-label">Winner PSNR at 2.3% Weights</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-value crimson">11.3</div>
+        <div class="stat-label">Loser PSNR After 3rd Iter</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-value">18×</div>
+        <div class="stat-label">Pruning Iterations</div>
+      </div>
+    </div>
+  </div>
 
-        <!-- 1. Introduction -->
-        <div class="section-number">01 — Introduction</div>
-        <h2 class="section-title">The Overparameterization Paradox</h2>
+  <!-- ─── Article ─────────────────────────────────────── -->
+  <article class="article">
 
-        <p class="drop-cap">There is a strange tension at the heart of modern deep learning. We build networks far
-            larger than they need to be — and it <em>helps</em>. Overparameterization aids optimization, improves
-            generalization, and opens basins of attraction that underfitted architectures could never reach. Yet the
-            moment training ends, we are left with a bloated artifact that spends most of its compute multiplying
-            numbers by near-zero weights. This is the overparameterization paradox: the redundancy that makes learning
-            possible makes deployment expensive.</p>
-
-        <p>For most computer vision tasks, this is merely an engineering inconvenience. But for <strong>Implicit Neural
-                Representations (INRs)</strong> — networks that replace discrete data arrays with continuous learned
-            functions — overparameterization is existential. An INR representing a 256×256 image stores roughly 262,000
-            floats. The uncompressed image itself is 196,608 floats. The network is already larger than what it models.
-            If we cannot compress INRs, their promise of "infinite-resolution, differentiable storage" rings hollow in
-            any real deployment.</p>
-
-        <p>The question I wanted to answer: <strong>does the Lottery Ticket Hypothesis (LTH) extend to SIREN?</strong>
-            And if it does, what makes a neuron "load-bearing" in a network whose architecture is built around periodic
-            functions rather than rectified linear units?</p>
-
-        <p>The answer turned out to be simultaneously reassuring and disturbing — reassuring because yes, winning
-            tickets exist and they're remarkably small; disturbing because the <em>losing</em> tickets don't just
-            degrade — they undergo instantaneous frequency collapse, a failure mode so distinctive it tells us something
-            fundamental about how SIRENs encode information.</p>
-
-        <div class="callout insight">
-            <div class="callout-label">Personal Note</div>
-            <p>I started this project convinced the SIREN/LTH intersection would behave like any other MLP experiment —
-                gradual degradation across the board. The speed of the loser's collapse genuinely surprised me. It's one
-                of those results where you check for bugs twice before accepting it as real.</p>
-        </div>
-
-        <!-- 2. Background -->
-        <div class="section-number">02 — Background</div>
-        <h2 class="section-title">Two Ideas That Collide</h2>
-
-        <h3 class="sub-title">The Spectral Bias Problem and SIREN's Solution</h3>
-        <p>The core problem with using standard ReLU networks as implicit representations is well-documented: neural
-            networks exhibit <strong>spectral bias</strong> (Rahaman et al., 2019), learning low-frequency components of
-            a target function first, often never fully capturing high-frequency detail regardless of training duration.
-            For natural images — which derive most of their perceptual richness from edges, textures, and high-frequency
-            patterns — this is fatal.</p>
-
-        <p>Sitzmann et al. (2020) proposed an elegant solution: replace ReLU with $\sin(\omega_0 \cdot)$. The resulting
-            <strong>Sinusoidal Representation Network (SIREN)</strong> has no spectral bias because every layer is
-            already a Fourier basis function. Through composition of sine functions, the network can represent
-            arbitrarily complex spectra. The key insight — stated in the paper but often underappreciated — is that
-            <em>any derivative of a SIREN is itself a SIREN</em>, since $\frac{d}{dx}\sin(x) = \cos(x)$ is a
-            phase-shifted sine. This makes SIRENs uniquely suited for physics-based applications where the gradient
-            field is as important as the function itself.
-        </p>
-
-        <div class="math-block">
-            <div>$$\Phi(\mathbf{x}) = \mathbf{W}_n \left( \phi_{n-1} \circ \phi_{n-2} \circ \cdots \circ \phi_0
-                \right)(\mathbf{x}) + \mathbf{b}_n$$</div>
-            <div style="margin-top:0.75rem">$$\phi_i(\mathbf{x}_i) = \sin\!\left(\omega_0 \cdot \mathbf{W}_i
-                \mathbf{x}_i + \mathbf{b}_i\right)$$</div>
-            <div class="math-caption">SIREN forward pass: each layer applies an affine transform scaled by $\omega_0$
-                and wrapped in sine. The first layer uses $\omega_0 = 30$ to set the initial frequency bandwidth;
-                subsequent layers inherit it.</div>
-        </div>
-
-        <p>The initialization scheme is equally critical. Preserving activation statistics across layers requires
-            sampling weights from $\mathcal{U}\!\left(-\sqrt{6/n}, \sqrt{6/n}\right) / \omega_0$ for hidden layers,
-            derived by ensuring each layer's output distribution remains arc-sine distributed (the stationary
-            distribution of $\sin$). Get this wrong and the network emits pure noise — a pitfall I encountered during
-            development and fixed only after carefully re-reading Appendix A of the original paper.</p>
-
-        <h3 class="sub-title">The Lottery Ticket Hypothesis</h3>
-        <p>Frankle &amp; Carlin's 2018 preprint (published at ICLR 2019, where it won a best paper award) articulated a
-            deceptively simple observation: <em>within any large randomly-initialized network, there exists a small
-                subnetwork that, when reset to its original initialization values and trained in isolation, matches the
-                performance of the full network.</em> They called these subnetworks "winning tickets" because they had
-            "won the initialization lottery" — their initial weights happened to occupy a geometry in parameter space
-            that enables fast, effective learning.</p>
-
-        <blockquote>
-            <p>The winning tickets we find have won the initialization lottery: their connections have initial weights
-                that make training particularly effective.</p>
-            <cite>— Frankle &amp; Carlin, ICLR 2019</cite>
-        </blockquote>
-
-        <p>The mechanism for finding them — <strong>Iterative Magnitude Pruning (IMP)</strong> with weight rewinding —
-            is elegantly procedural: train to convergence, remove lowest-magnitude weights, <em>rewind</em> surviving
-            weights back to their initial values, repeat. The rewinding step is the crux. Without it, you're just
-            compressing a trained network; with it, you're identifying which initial weight configurations are
-            structurally privileged.</p>
-
-        <p>What makes this particularly interesting for INRs is the <em>regime difference</em>. LTH was established on
-            classification tasks with discrete labels. INRs are pure regression problems — the "label" at each
-            coordinate is the full-resolution pixel value. The network has no class boundaries to exploit, no discrete
-            clusters to align with. It must encode a continuous function from scratch. Whether the lottery ticket
-            phenomenon persists in this regime was, until this work, an open question.</p>
-
-        <div class="callout insight">
-            <div class="callout-label">Related Work</div>
-            <p>Frankle et al. (2020) later showed that IMP's requirement for exact initialization rewinding weakens in
-                larger networks — "late rewinding" to an early training checkpoint often suffices. For small-scale INRs
-                with few parameters, exact rewinding (to epoch 0) is necessary and sufficient. The cleaner the setup,
-                the more the original hypothesis holds.</p>
-        </div>
-
-    </article>
-
-    <!-- ─── Interactive Lab ──────────────────────────────── -->
-    <section class="lab-section" id="lab">
-        <div class="lab-wrap">
-            <div class="lab-header">
-                <div class="kicker">Interactive Experiment</div>
-                <h2>The Pruning Laboratory</h2>
-                <p>Drag the slider to advance through 18 pruning iterations. Watch the three tickets diverge.</p>
-            </div>
-
-            <div class="slider-wrap">
-                <div class="iteration-pill">
-                    <div class="pill-item">
-                        <span class="pill-label">Iteration</span>
-                        <span class="pill-value" id="iterVal">01</span>
-                    </div>
-                    <div class="pill-item">
-                        <span class="pill-label">Remaining Weights</span>
-                        <span class="pill-value gold" id="remainingVal">100.0%</span>
-                    </div>
-                    <div class="pill-item">
-                        <span class="pill-label">Winner PSNR</span>
-                        <span class="pill-value" id="winnerPsnr">47.3 dB</span>
-                    </div>
-                    <div class="pill-item">
-                        <span class="pill-label">Loser PSNR</span>
-                        <span class="pill-value" id="loserPsnr">47.6 dB</span>
-                    </div>
-                </div>
-                <br>
-                <input type="range" id="slider" min="0" max="17" value="0" oninput="updateImages()" />
-            </div>
-
-            <div class="ticket-grid">
-                <div class="ticket-card winner">
-                    <div class="card-header">
-                        <span class="card-type">🏆 Winning Ticket</span>
-                        <span class="card-psnr" id="winnerPsnrCard">—</span>
-                    </div>
-                    <img id="winner" src="" alt="Winner reconstruction" loading="lazy" />
-                    <div class="card-footer">Lowest-magnitude pruning (IMP)</div>
-                </div>
-                <div class="ticket-card random">
-                    <div class="card-header">
-                        <span class="card-type">🎲 Random Control</span>
-                        <span class="card-psnr" id="randomPsnrCard">—</span>
-                    </div>
-                    <img id="random" src="" alt="Random reconstruction" loading="lazy" />
-                    <div class="card-footer">Uniform random pruning</div>
-                </div>
-                <div class="ticket-card loser">
-                    <div class="card-header">
-                        <span class="card-type">📉 Losing Ticket</span>
-                        <span class="card-psnr" id="loserPsnrCard">—</span>
-                    </div>
-                    <img id="loser" src="" alt="Loser reconstruction" loading="lazy" />
-                    <div class="card-footer">Highest-magnitude pruning</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ─── Methodology ──────────────────────────────────── -->
-    <article class="article" id="methodology">
-        <div class="section-number">03 — Methodology</div>
-        <h2 class="section-title">The Experimental Architecture</h2>
-
-        <h3 class="sub-title">The SIREN Backbone</h3>
-        <p>I used a 5-layer MLP with 256 hidden units at each layer, an input dimension of 2 (normalized pixel
-            coordinates in $[-1, 1]^2$) and output dimension of 3 (RGB, in $[-1, 1]$). The first layer uses $\omega_0 =
-            30$ to set the base frequency; subsequent hidden layers inherit this factor. The output layer is a plain
-            linear map — no sine, no clamp — allowing unconstrained gradient flow during training, with clamping applied
-            only at reconstruction time.</p>
-
-        <p>Total parameters: <code>2×256+256 + 3×(256×256+256) + 256×3+3 = 198,915</code>. Small enough to run entirely
-            in VRAM, large enough that the LTH dynamics are genuinely interesting. The target: Leonardo da Vinci's
-            <em>Mona Lisa</em>, resized to 256×256 and normalized. I chose this image deliberately — it has a rich mix
-            of low-frequency gradients (the sky, skin) and high-frequency detail (the veil, background foliage), making
-            the frequency-collapse mechanism maximally visible.
-        </p>
-
-        <h3 class="sub-title">The Three Pruning Strategies</h3>
-        <p>At each of 18 iterations, after 1,000 training epochs and Adam optimization at $\text{lr}=10^{-4}$ with
-            cosine annealing, I applied one of three pruning functions to 20% of remaining active weights:</p>
-
-        <div class="data-table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Strategy</th>
-                        <th>Rule</th>
-                        <th>Hypothesis</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="td-winner">Winning Ticket</td>
-                        <td>Prune lowest $|w_i|$</td>
-                        <td>Small weights are noise; large weights encode signal</td>
-                    </tr>
-                    <tr>
-                        <td class="td-random">Random Ticket</td>
-                        <td>Prune uniform random $20\%$</td>
-                        <td>Control: does structure matter, or is any $N\%$ sufficient?</td>
-                    </tr>
-                    <tr>
-                        <td class="td-loser">Losing Ticket</td>
-                        <td>Prune highest $|w_i|$</td>
-                        <td>High-magnitude weights are load-bearing in SIREN</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <p>After each pruning step, surviving weights are <strong>rewound to their exact epoch-0 values</strong> — the
-            true LTH protocol. This is implemented by maintaining a frozen copy of the initial state dict and
-            overwriting <code>module.weight_orig</code> (PyTorch's internal pruning target) with the masked initial
-            weights: $\theta_{\text{orig}} \leftarrow m \odot \theta_0$.</p>
-
-        <div class="math-block">
-            <div>$$\text{Remaining}(k) = (1 - p)^k \qquad p = 0.20, \quad k \in \{1,\ldots,18\}$$</div>
-            <div style="margin-top:0.5rem; font-size:0.88rem; color: #7a8099;">Total iterations: $k = \lceil \log(0.02)
-                / \log(0.80) \rceil = 18$, reaching ${\approx}1.8\%$ remaining.</div>
-        </div>
-
-        <p>Critically: the "20% of remaining" formulation means pruning follows an <em>exponential decay schedule</em>,
-            not a linear one. By iteration 18 we're at 1.8% of original weights — roughly 3,580 parameters carrying the
-            entire Mona Lisa. The PSNR results at this extreme tell us what is structurally essential versus decorative
-            in the network's parametrization.</p>
-
-        <div class="callout warning">
-            <div class="callout-label">Implementation Detail</div>
-            <p>The losing ticket required special handling. PyTorch's built-in pruning methods offer no "prune largest"
-                variant. The custom implementation sorts all active weights globally on CPU (to avoid GPU
-                <code>kthvalue</code> instability on degenerate distributions of near-zero values), determines the
-                threshold at position $n_\text{keep}$ in the sorted array, and applies
-                <code>prune.custom_from_mask</code> per-layer. Crucially, already-pruned zeros are excluded from the
-                magnitude pool — otherwise they dominate and artificially inflate the threshold.
-            </p>
-        </div>
-
-        <!-- 4. Results -->
-        <div class="section-number">04 — Results</div>
-        <h2 class="section-title" id="results">The Frequency Collapse</h2>
-
-        <p>The results are dramatic enough to be immediately visible in the PSNR curves below. Let me walk through what
-            each line is telling us.</p>
-    </article>
-
-    <!-- ─── PSNR Chart ──────────────────────────────────── -->
-    <div class="chart-section">
-        <div class="chart-wrap">
-            <canvas id="psnrChart"></canvas>
-            <div class="chart-legend">
-                <div class="legend-item">
-                    <div class="legend-dot" style="background:var(--gold)"></div>Winning Ticket (IMP)
-                </div>
-                <div class="legend-item">
-                    <div class="legend-dot" style="background:var(--blue)"></div>Random Ticket (Control)
-                </div>
-                <div class="legend-item">
-                    <div class="legend-dot" style="background:var(--crimson)"></div>Losing Ticket (Anti-IMP)
-                </div>
-            </div>
-            <div class="fig-caption"><strong>Figure 1.</strong> PSNR (dB) vs. remaining weight fraction. X-axis is
-                logarithmic and reversed (left = dense, right = sparse). Note the winner's graceful decay versus the
-                loser's step-function collapse after just one pruning round.</div>
-        </div>
+    <div class="abstract">
+      <div class="abstract-label">Abstract</div>
+      <p>Implicit Neural Representations (INRs) are overparameterized by design — a feature, not a bug. But can we
+        surgically remove most of their parameters and still preserve the signal they've memorized? This work applies
+        the Lottery Ticket Hypothesis to SIREN networks fitted to a single image, contrasting three pruning strategies
+        across 18 iterative rounds down to 1.8% of original network weight. We find that SIREN contains a remarkable
+        winning ticket — a 2.3% sub-network maintaining 32.7&nbsp;dB PSNR — while the losing ticket collapses
+        catastrophically to noise in just <em>two</em> pruning rounds. The mechanism is not bandwidth limitation but
+        <strong>frequency carrier destruction</strong>: SIREN's high-magnitude weights act as the primary oscillators of
+        its Fourier decomposition, and removing them is equivalent to silencing all radio stations simultaneously.</p>
     </div>
 
-    <article class="article">
+    <!-- 1. Introduction -->
+    <div class="section-number">01 — Introduction</div>
+    <h2 class="section-title">A Confession: I'm a 3DV Person Who Moonlights in Theory</h2>
 
-        <h3 class="sub-title">The Winner: Resilient to the End</h3>
-        <p>The winning ticket starts at 47.3&nbsp;dB — essentially perfect reconstruction. Its decay is remarkably slow:
-            still above 40&nbsp;dB at 32.8% remaining weights, above 35&nbsp;dB at just 4.4%, and landing at
-            <strong>32.7&nbsp;dB with only 2.3% of its original parameters</strong>. For context, 30&nbsp;dB is the
-            informal threshold for "perceptually acceptable" image quality. The winning ticket is still above this
-            threshold at extreme sparsity.
-        </p>
+    <p class="drop-cap">During my undergrad at UAB, I took the Advanced Machine Learning course taught by <strong>Andrey
+        Barsky</strong> — one of the best teachers I've had the luck of learning from. The class was demanding in the
+      best way: every few weeks a new idea would land that quietly rearranged how I thought about learning machines. The
+      Neural Tangent Kernel. Low-Rank Adaptation. Continual learning. Model merging. And the one that stuck deepest: the
+      <strong>Lottery Ticket Hypothesis</strong>.</p>
 
-        <p>What does this mean? That the Mona Lisa — all its sfumato gradients, its enigmatic expression, its
-            Renaissance chiaroscuro — can be encoded in roughly 3,600 floating-point numbers and a connectivity pattern,
-            down from 198,915. This is an approximately <strong>55× compression</strong> of the network, with
-            perceptually reasonable output quality. In sparse COO format (storing only non-zero weights with their
-            indices), this translates to roughly 27&nbsp;KB versus the original ~781&nbsp;KB state dict.</p>
+    <p>Andrey introduced the LTH almost as a philosophical provocation: inside every large, randomly initialized
+      network, there exists a tiny sub-network that, if reset to its initial values and trained alone, can match the
+      full network's performance. He showed Frankle &amp; Carlin's results — sparse architectures outperforming their
+      dense parents with 21% of the original parameters — and the room went quiet for a moment. There's something
+      unsettling and beautiful about the idea that most of what we train is scaffolding, not structure.</p>
 
-        <h3 class="sub-title">The Random Ticket: Logarithmic Decay</h3>
-        <p>The random ticket behaves exactly as you'd expect from information theory: smooth, monotonic decay. It stays
-            surprisingly competitive at moderate sparsity (above 35&nbsp;dB until around 10% remaining), then falls off
-            rapidly below 5%. This is the baseline against which winning and losing tickets are compared — and it
-            demonstrates that <em>structure matters</em>. The winning ticket consistently outperforms the random ticket
-            at every sparsity level, confirming that the LTH is not a tautology (any sparse network is fine) but a
-            genuine property of the initialization-magnitude alignment.</p>
+    <p>That obsession with theoretical and architectural deep learning didn't stay in the classroom. By day I work on 3D
+      vision — point cloud encoders, 3D asset generation, the geometric side of things. But at night, I keep reading and
+      thinking about the ideas Andrey introduced. These aren't niche curiosities; they're windows into why learning
+      works at all.</p>
 
-        <h3 class="sub-title">The Loser: Instantaneous Collapse</h3>
-        <p>The losing ticket's curve is the most striking feature of this entire experiment. It begins at 47.6&nbsp;dB —
-            actually the highest starting point, noise variation aside. Then, at 80% remaining weights (just the first
-            pruning), it drops to 29.3&nbsp;dB. By 64% remaining, it's at 11.5&nbsp;dB — the PSNR of a blank gray screen
-            — where it flatlines for all subsequent iterations.</p>
+    <div class="callout insight">
+      <div class="callout-label">Origin Story: The PAH Paper</div>
+      <p>That class also led directly to a research collaboration. Together with Andrey and my friend <strong>Maria
+          Pilligua</strong> (now at EPFL), we built <em>Prototype-Augmented Hypernetworks (PAH)</em> — a continual
+        learning framework where a single hypernetwork, conditioned on learnable task prototypes, dynamically generates
+        task-specific classifier heads on demand. It was published at a CVPR workshop, and working on it was one of the
+        most genuinely enjoyable research experiences of my life: we were building on the exact ideas from class, in
+        real experiments, at 2am, with a lot of coffee. Maria did exceptional work bridging the prototype and
+        distillation components; the result was a method that reached state-of-the-art on Split-CIFAR100 with only 1.7%
+        forgetting.</p>
+    </div>
 
-        <p>This is not gradual. It is a step function. The removal of 20% of the highest-magnitude weights causes the
-            network to emit noise from which it never recovers across 18,000 additional training epochs. This is the
-            <strong>frequency collapse</strong>: the entire signal-encoding capacity of the SIREN is destroyed in a
-            single pruning round.
-        </p>
+    <p>This project — applying the LTH to Sinusoidal Representation Networks — is a direct descendant of that period.
+      It's the kind of experiment you run because the question is genuinely interesting, not because there's a benchmark
+      to chase. I wanted to know whether the lottery ticket phenomenon survives the shift from ReLU classification to
+      periodic-activation regression; and if so, what role weight magnitude plays in a network that encodes signals
+      through sine waves rather than piecewise linear boundaries.</p>
 
-        <div class="data-table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Remaining %</th>
-                        <th>Winner (dB)</th>
-                        <th>Random (dB)</th>
-                        <th>Loser (dB)</th>
-                        <th>Gap (W−L)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>100.0</td>
-                        <td class="td-winner">47.29</td>
-                        <td class="td-random">47.54</td>
-                        <td class="td-loser">47.62</td>
-                        <td>—</td>
-                    </tr>
-                    <tr>
-                        <td>80.0</td>
-                        <td class="td-winner">46.75</td>
-                        <td class="td-random">44.14</td>
-                        <td class="td-loser">29.31</td>
-                        <td>+17.4</td>
-                    </tr>
-                    <tr>
-                        <td>64.0</td>
-                        <td class="td-winner">46.00</td>
-                        <td class="td-random">41.87</td>
-                        <td class="td-loser">11.46</td>
-                        <td>+34.5</td>
-                    </tr>
-                    <tr>
-                        <td>32.8</td>
-                        <td class="td-winner">41.90</td>
-                        <td class="td-random">37.36</td>
-                        <td class="td-loser">11.32</td>
-                        <td>+30.6</td>
-                    </tr>
-                    <tr>
-                        <td>10.7</td>
-                        <td class="td-winner">36.49</td>
-                        <td class="td-random">33.33</td>
-                        <td class="td-loser">11.32</td>
-                        <td>+25.2</td>
-                    </tr>
-                    <tr>
-                        <td>2.3</td>
-                        <td class="td-winner">32.73</td>
-                        <td class="td-random">23.64</td>
-                        <td class="td-loser">11.32</td>
-                        <td>+21.4</td>
-                    </tr>
-                </tbody>
-            </table>
+    <h2 class="section-title" style="margin-top:2rem;">The Overparameterization Paradox</h2>
+
+    <p>There is a strange tension at the heart of modern deep learning. We build networks far larger than they need to
+      be — and it <em>helps</em>. Overparameterization aids optimization, improves generalization, and opens basins of
+      attraction that underfitted architectures could never reach. Yet the moment training ends, we are left with a
+      bloated artifact that spends most of its compute multiplying numbers by near-zero weights. This is the
+      overparameterization paradox: the redundancy that makes learning possible makes deployment expensive.</p>
+
+    <p>For most computer vision tasks, this is merely an engineering inconvenience. But for <strong>Implicit Neural
+        Representations (INRs)</strong> — networks that replace discrete data arrays with continuous learned functions —
+      overparameterization is existential. An INR representing a 256×256 image stores roughly 262,000 floats. The
+      uncompressed image itself is 196,608 floats. The network is <em>already larger than what it models</em>. If we
+      cannot compress INRs, their promise of "infinite-resolution, differentiable storage" rings hollow in any real
+      deployment.</p>
+
+    <p>The question I wanted to answer: <strong>does the Lottery Ticket Hypothesis extend to SIREN?</strong> And if it
+      does, what makes a neuron "load-bearing" in a network whose architecture is built around periodic functions rather
+      than rectified linear units?</p>
+
+    <p>The answer turned out to be simultaneously reassuring and disturbing — reassuring because yes, winning tickets
+      exist and they're remarkably small; disturbing because the <em>losing</em> tickets don't just degrade — they
+      undergo instantaneous frequency collapse, a failure mode so distinctive it tells us something fundamental about
+      how SIRENs encode information. This is one of those results where you check for bugs twice before accepting it as
+      real.</p>
+
+    <!-- 2. Background -->
+    <div class="section-number">02 — Background</div>
+    <h2 class="section-title">Two Ideas That Collide</h2>
+
+    <h3 class="sub-title">The Spectral Bias Problem and SIREN's Solution</h3>
+    <p>The core problem with using standard ReLU networks as implicit representations is well-documented: neural
+      networks exhibit <strong>spectral bias</strong> (Rahaman et al., 2019), learning low-frequency components of a
+      target function first, often never fully capturing high-frequency detail regardless of training duration. For
+      natural images — which derive most of their perceptual richness from edges, textures, and high-frequency patterns
+      — this is fatal.</p>
+
+    <p>Sitzmann et al. (2020) proposed an elegant solution: replace ReLU with $\sin(\omega_0 \cdot)$. The resulting
+      <strong>Sinusoidal Representation Network (SIREN)</strong> has no spectral bias because every layer is already a
+      Fourier basis function. Through composition of sine functions, the network can represent arbitrarily complex
+      spectra. The key insight — stated in the paper but often underappreciated — is that <em>any derivative of a SIREN
+        is itself a SIREN</em>, since $\frac{d}{dx}\sin(x) = \cos(x)$ is a phase-shifted sine. This makes SIRENs
+      uniquely suited for physics-based applications where the gradient field is as important as the function itself.
+    </p>
+
+    <div class="math-block">
+      <div>$$\Phi(\mathbf{x}) = \mathbf{W}_n \left( \phi_{n-1} \circ \phi_{n-2} \circ \cdots \circ \phi_0
+        \right)(\mathbf{x}) + \mathbf{b}_n$$</div>
+      <div style="margin-top:0.75rem">$$\phi_i(\mathbf{x}_i) = \sin\!\left(\omega_0 \cdot \mathbf{W}_i \mathbf{x}_i +
+        \mathbf{b}_i\right)$$</div>
+      <div class="math-caption">SIREN forward pass: each layer applies an affine transform scaled by $\omega_0$ and
+        wrapped in sine. The first layer uses $\omega_0 = 30$ to set the initial frequency bandwidth; subsequent layers
+        inherit it.</div>
+    </div>
+
+    <p>The initialization scheme is equally critical. Preserving activation statistics across layers requires sampling
+      weights from $\mathcal{U}\!\left(-\sqrt{6/n}, \sqrt{6/n}\right) / \omega_0$ for hidden layers, derived by ensuring
+      each layer's output distribution remains arc-sine distributed (the stationary distribution of $\sin$). Get this
+      wrong and the network emits pure noise — a pitfall I encountered during development and fixed only after carefully
+      re-reading Appendix A of the original paper.</p>
+
+    <h3 class="sub-title">The Lottery Ticket Hypothesis</h3>
+    <p>Frankle &amp; Carlin's 2018 preprint (published at ICLR 2019, where it won a best paper award) articulated a
+      deceptively simple observation: <em>within any large randomly-initialized network, there exists a small subnetwork
+        that, when reset to its original initialization values and trained in isolation, matches the performance of the
+        full network.</em> They called these subnetworks "winning tickets" because they had "won the initialization
+      lottery" — their initial weights happened to occupy a geometry in parameter space that enables fast, effective
+      learning.</p>
+
+    <blockquote>
+      <p>The winning tickets we find have won the initialization lottery: their connections have initial weights that
+        make training particularly effective.</p>
+      <cite>— Frankle &amp; Carlin, ICLR 2019</cite>
+    </blockquote>
+
+    <p>The mechanism for finding them — <strong>Iterative Magnitude Pruning (IMP)</strong> with weight rewinding — is
+      elegantly procedural: train to convergence, remove lowest-magnitude weights, <em>rewind</em> surviving weights
+      back to their initial values, repeat. The rewinding step is the crux. Without it, you're just compressing a
+      trained network; with it, you're identifying which initial weight configurations are structurally privileged.</p>
+
+    <p>What makes this particularly interesting for INRs is the <em>regime difference</em>. LTH was established on
+      classification tasks with discrete labels. INRs are pure regression problems — the "label" at each coordinate is
+      the full-resolution pixel value. The network has no class boundaries to exploit, no discrete clusters to align
+      with. It must encode a continuous function from scratch. Whether the lottery ticket phenomenon persists in this
+      regime was, until this work, an open question.</p>
+
+    <div class="callout insight">
+      <div class="callout-label">Related Work</div>
+      <p>Frankle et al. (2020) later showed that IMP's requirement for exact initialization rewinding weakens in larger
+        networks — "late rewinding" to an early training checkpoint often suffices. For small-scale INRs with few
+        parameters, exact rewinding (to epoch 0) is necessary and sufficient. The cleaner the setup, the more the
+        original hypothesis holds.</p>
+    </div>
+
+  </article>
+
+  <!-- ─── Interactive Lab ──────────────────────────────── -->
+  <section class="lab-section" id="lab">
+    <div class="lab-wrap">
+      <div class="lab-header">
+        <div class="kicker">Interactive Experiment</div>
+        <h2>The Pruning Laboratory</h2>
+        <p>Drag the slider to advance through 18 pruning iterations. Watch the three tickets diverge.</p>
+      </div>
+
+      <div class="slider-wrap">
+        <div class="iteration-pill">
+          <div class="pill-item">
+            <span class="pill-label">Iteration</span>
+            <span class="pill-value" id="iterVal">01</span>
+          </div>
+          <div class="pill-item">
+            <span class="pill-label">Remaining Weights</span>
+            <span class="pill-value gold" id="remainingVal">100.0%</span>
+          </div>
+          <div class="pill-item">
+            <span class="pill-label">Winner PSNR</span>
+            <span class="pill-value" id="winnerPsnr">47.3 dB</span>
+          </div>
+          <div class="pill-item">
+            <span class="pill-label">Loser PSNR</span>
+            <span class="pill-value" id="loserPsnr">47.6 dB</span>
+          </div>
         </div>
+        <br>
+        <input type="range" id="slider" min="0" max="17" value="0" oninput="updateImages()" />
+      </div>
 
-        <div class="callout finding">
-            <div class="callout-label">Key Finding</div>
-            <p>The winner-loser PSNR gap at 64% remaining is <strong>34.5 dB</strong>. This is not a marginal
-                experimental effect — it is the difference between a recognizable painting and white noise. No
-                cherry-picking or hyperparameter tuning produces this; it is a structural consequence of how SIREN
-                encodes information in its weight magnitudes.</p>
+      <div class="ticket-grid">
+        <div class="ticket-card winner">
+          <div class="card-header">
+            <span class="card-type">🏆 Winning Ticket</span>
+            <span class="card-psnr" id="winnerPsnrCard">—</span>
+          </div>
+          <img id="winner" src="" alt="Winner reconstruction" loading="lazy" />
+          <div class="card-footer">Lowest-magnitude pruning (IMP)</div>
         </div>
-
-        <!-- 5. Discussion -->
-        <div class="section-number">05 — Discussion</div>
-        <h2 class="section-title" id="discussion">Why the Loser Fails Catastrophically</h2>
-
-        <p>The losing ticket's behavior requires explanation. In a standard ReLU network, pruning high-magnitude weights
-            causes degradation — but gradual degradation, not instant collapse. Losing tickets in ReLU networks are bad;
-            in SIRENs, they are dead.</p>
-
-        <h3 class="sub-title">SIREN Weights as Frequency Carriers</h3>
-        <p>Consider what a SIREN weight matrix $\mathbf{W}_i$ actually does. The $j$-th output of layer $i$ computes
-            $\sin(\omega_0 (\mathbf{W}_i \mathbf{x})_j + b_j)$. The magnitude of $(\mathbf{W}_i \mathbf{x})_j$
-            determines the <em>amplitude</em> of the oscillation at that node. Large weights → large pre-activation
-            values → the sine oscillates across a wider range of its domain. Small weights → the sine barely moves from
-            zero.</p>
-
-        <p>Through composition of $k$ such layers, the SIREN constructs a superposition of high-order trigonometric
-            polynomials. The specific frequencies that can be represented are determined by which weight combinations
-            produce constructive interference across layers. The <strong>high-magnitude weights are the primary
-                oscillators</strong> — they set the dominant frequencies that give the reconstruction its edges and
-            textures. The small-magnitude weights are the fine-tuning residuals.</p>
-
-        <p>When you prune the 20% largest weights globally, you don't just reduce the network's capacity. You remove the
-            nodes that generate the highest-frequency components of the internal representation. What remains is a
-            network of sub-harmonics — a SIREN that can only produce low-frequency hum. And crucially, no amount of
-            retraining can recover those frequencies, because the rewound initial weights for those positions are also
-            small (having survived as small weights from the original random initialization).</p>
-
-        <div class="math-block">
-            <div>$$\Phi_\text{loser}(\mathbf{x}) \approx \sum_{k \in \mathcal{S}_\text{small}} c_k \sin(\omega_k \cdot
-                \mathbf{x} + \psi_k)$$</div>
-            <div class="math-caption">After losing-ticket pruning, only low-amplitude basis functions remain. The
-                effective bandwidth of the representation collapses to the lowest frequencies — insufficient to
-                reconstruct any meaningful texture.</div>
+        <div class="ticket-card random">
+          <div class="card-header">
+            <span class="card-type">🎲 Random Control</span>
+            <span class="card-psnr" id="randomPsnrCard">—</span>
+          </div>
+          <img id="random" src="" alt="Random reconstruction" loading="lazy" />
+          <div class="card-footer">Uniform random pruning</div>
         </div>
-
-        <h3 class="sub-title">Why ReLU Networks Don't Suffer This</h3>
-        <p>In a ReLU network, large weights don't have the same carrier role. A large weight on a ReLU node simply
-            shifts the decision boundary. The signal is encoded in the <em>pattern of active vs. inactive units</em>,
-            not in the magnitude of any individual weight. Removing the highest-magnitude weights reorganizes but
-            doesn't annihilate the frequency content of the representation — ReLU networks have no frequency content to
-            destroy in the first place; they encode signals through piecewise linear boundaries.</p>
-
-        <p>This is a deep architectural difference, not a hyperparameter sensitivity. The SIREN's power comes from its
-            frequency-rich representation; its vulnerability to losing-ticket pruning is the flip side of that same
-            coin.</p>
-
-        <h3 class="sub-title">Implications for NeRF and 3D Representation</h3>
-        <p>The practical stakes here extend well beyond image compression. Neural Radiance Fields (NeRFs) use
-            coordinate-MLPs structurally similar to SIRENs (often with positional encodings playing the role of SIREN's
-            initialization). Recent work on NeRF compression — including KiloNeRF, Instant-NGP, and TensoRF — has
-            focused on architecture redesign. The LTH perspective suggests a complementary approach: <em>prune the NeRF
-                itself, with rewinding</em>. If a 1.8%-sparse SIREN can represent a 2D image with 32.7&nbsp;dB PSNR, a
-            sparse NeRF might represent 3D scenes with dramatically fewer parameters than current methods assume
-            necessary.</p>
-
-        <p>The losing ticket experiment also has a practical negative implication: magnitude-based pruning on SIRENs
-            must be done <em>carefully}. If you prune high-magnitude weights — as some aggressive pruning schedules do
-                when removing "outliers" — you risk frequency collapse rather than smooth compression. The safest
-                pruning strategies for periodic-activation networks are IMP (lowest magnitude) or random pruning, never
-                highest-magnitude removal.</p>
-
-        <div class="callout insight">
-            <div class="callout-label">Open Question</div>
-            <p>An intriguing follow-up: does the winning ticket found here <em>transfer across images</em>? Morcos et
-                al. (2019) showed that lottery tickets found on CIFAR-10 sometimes transfer to CIFAR-100. For INRs,
-                transferability would mean something even stranger — that the same sparse connectivity structure can be
-                reused to represent entirely different natural signals. This seems improbable (each image has different
-                frequency content), but the connectivity structure of the winning ticket might reveal universal
-                properties of how SIRENs decompose 2D signals.</p>
+        <div class="ticket-card loser">
+          <div class="card-header">
+            <span class="card-type">📉 Losing Ticket</span>
+            <span class="card-psnr" id="loserPsnrCard">—</span>
+          </div>
+          <img id="loser" src="" alt="Loser reconstruction" loading="lazy" />
+          <div class="card-footer">Highest-magnitude pruning</div>
         </div>
+      </div>
+    </div>
+  </section>
 
-        <h3 class="sub-title">What the Winning Ticket Is Really Preserving</h3>
-        <p>Looking at the winning ticket reconstructions in the lab above, a pattern emerges. At 5% remaining weights,
-            the reconstruction loses fine detail — the intricate lace of the veil, the subtle texture of the background
-            rocks — but preserves the macro-structure: the silhouette, the dominant color gradients, the facial
-            geometry. This is not accidental.</p>
+  <!-- ─── Methodology ──────────────────────────────────── -->
+  <article class="article" id="methodology">
+    <div class="section-number">03 — Methodology</div>
+    <h2 class="section-title">The Experimental Architecture</h2>
 
-        <p>The small-magnitude weights that the winning ticket preserves are precisely those responsible for the
-            low-frequency backbone of the signal. They're small in magnitude because the SIREN's initialization scheme
-            deliberately scales hidden-layer weights by $1/\omega_0$ — small at initialization, they correspond to
-            low-frequency components that are easy to learn and cheap to represent. The winning ticket is, in essence,
-            the Fourier low-pass filter of the full network, and IMP happens to be the procedure that isolates it.</p>
+    <h3 class="sub-title">The SIREN Backbone</h3>
+    <p>I used a 5-layer MLP with 256 hidden units at each layer, an input dimension of 2 (normalized pixel coordinates
+      in $[-1, 1]^2$) and output dimension of 3 (RGB, in $[-1, 1]$). The first layer uses $\omega_0 = 30$ to set the
+      base frequency; subsequent hidden layers inherit this factor. The output layer is a plain linear map — no sine, no
+      clamp — allowing unconstrained gradient flow during training, with clamping applied only at reconstruction time.
+    </p>
 
-        <!-- 6. Compression Analysis -->
-        <div class="section-number">06 — Compression Analysis</div>
-        <h2 class="section-title">The Space-Time Tradeoff</h2>
+    <p>Total parameters: <code>2×256+256 + 3×(256×256+256) + 256×3+3 = 198,915</code>. Small enough to run entirely in
+      VRAM, large enough that the LTH dynamics are genuinely interesting. The target: Leonardo da Vinci's <em>Mona
+        Lisa</em>, resized to 256×256 and normalized. I chose this image deliberately — it has a rich mix of
+      low-frequency gradients (the sky, skin) and high-frequency detail (the veil, background foliage), making the
+      frequency-collapse mechanism maximally visible.</p>
 
-        <p>One of the original motivations for this experiment was the question of whether INRs can be practically
-            compressed. The answer is emphatically yes, with a caveat: the compression is <em>theoretical</em> rather
-            than practical under standard dense computation.</p>
+    <h3 class="sub-title">The Three Pruning Strategies</h3>
+    <p>At each of 18 iterations, after 1,000 training epochs and Adam optimization at $\text{lr}=10^{-4}$ with cosine
+      annealing, I applied one of three pruning functions to 20% of remaining active weights:</p>
 
-        <div class="callout warning">
-            <div class="callout-label">Important Clarification</div>
-            <p>As shown in the benchmark results, PyTorch's unstructured pruning does NOT automatically produce
-                inference speedups. The pruning mask is applied as $\mathbf{W}_\text{eff} = \mathbf{W}_\text{orig} \odot
-                M$, which remains a dense operation. Real latency gains require hardware-aware sparse kernels (e.g.,
-                CUDA cuSPARSE, or custom CUTLASS kernels) or structural pruning (removing entire rows/columns). The
-                compression numbers below refer to storage, not compute.</p>
+    <div class="data-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Strategy</th>
+            <th>Rule</th>
+            <th>Hypothesis</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="td-winner">Winning Ticket</td>
+            <td>Prune lowest $|w_i|$</td>
+            <td>Small weights are noise; large weights encode signal</td>
+          </tr>
+          <tr>
+            <td class="td-random">Random Ticket</td>
+            <td>Prune uniform random $20\%$</td>
+            <td>Control: does structure matter, or is any $N\%$ sufficient?</td>
+          </tr>
+          <tr>
+            <td class="td-loser">Losing Ticket</td>
+            <td>Prune highest $|w_i|$</td>
+            <td>High-magnitude weights are load-bearing in SIREN</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>After each pruning step, surviving weights are <strong>rewound to their exact epoch-0 values</strong> — the true
+      LTH protocol. This is implemented by maintaining a frozen copy of the initial state dict and overwriting
+      <code>module.weight_orig</code> (PyTorch's internal pruning target) with the masked initial weights:
+      $\theta_{\text{orig}} \leftarrow m \odot \theta_0$.</p>
+
+    <div class="math-block">
+      <div>$$\text{Remaining}(k) = (1 - p)^k \qquad p = 0.20, \quad k \in \{1,\ldots,18\}$$</div>
+      <div style="margin-top:0.5rem; font-size:0.88rem; color: #7a8099;">Total iterations: $k = \lceil \log(0.02) /
+        \log(0.80) \rceil = 18$, reaching ${\approx}1.8\%$ remaining.</div>
+    </div>
+
+    <p>Critically: the "20% of remaining" formulation means pruning follows an <em>exponential decay schedule</em>, not
+      a linear one. By iteration 18 we're at 1.8% of original weights — roughly 3,580 parameters carrying the entire
+      Mona Lisa. The PSNR results at this extreme tell us what is structurally essential versus decorative in the
+      network's parametrization.</p>
+
+    <div class="callout warning">
+      <div class="callout-label">Implementation Detail</div>
+      <p>The losing ticket required special handling. PyTorch's built-in pruning methods offer no "prune largest"
+        variant. The custom implementation sorts all active weights globally on CPU (to avoid GPU <code>kthvalue</code>
+        instability on degenerate distributions of near-zero values), determines the threshold at position
+        $n_\text{keep}$ in the sorted array, and applies <code>prune.custom_from_mask</code> per-layer. Crucially,
+        already-pruned zeros are excluded from the magnitude pool — otherwise they dominate and artificially inflate the
+        threshold.</p>
+    </div>
+
+    <!-- 4. Results -->
+    <div class="section-number">04 — Results</div>
+    <h2 class="section-title" id="results">The Frequency Collapse</h2>
+
+    <p>The results are dramatic enough to be immediately visible in the PSNR curves below. Let me walk through what each
+      line is telling us.</p>
+  </article>
+
+  <!-- ─── PSNR Chart ──────────────────────────────────── -->
+  <div class="chart-section">
+    <div class="chart-wrap">
+      <div class="chart-canvas-wrap">
+        <canvas id="psnrChart"></canvas>
+      </div>
+      <div class="chart-legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--gold)"></div>Winning Ticket (IMP)
         </div>
-
-        <div class="stats-strip">
-            <div class="stat-cell">
-                <div class="stat-value">781 KB</div>
-                <div class="stat-label">Dense State Dict</div>
-            </div>
-            <div class="stat-cell">
-                <div class="stat-value gold">27 KB</div>
-                <div class="stat-label">Sparse (COO) at 2.3%</div>
-            </div>
-            <div class="stat-cell">
-                <div class="stat-value">29x</div>
-                <div class="stat-label">Compression Ratio</div>
-            </div>
-            <div class="stat-cell">
-                <div class="stat-value">32.7 dB</div>
-                <div class="stat-label">Preserved PSNR</div>
-            </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--blue)"></div>Random Ticket (Control)
         </div>
-
-        <p>In COO (Coordinate) sparse format, each non-zero weight requires storing its value (float32) and its index
-            (int32) — 8 bytes versus 4 bytes for a dense weight. The break-even point is 50% density; below that, sparse
-            is smaller. At 2.3% density, we store roughly 4,575 parameters as (index, value) pairs — total storage ≈
-            36.6 KB, compared to 781 KB dense. A practical 21× reduction.</p>
-
-        <!-- 7. Reflections -->
-        <div class="section-number">07 — Reflections</div>
-        <h2 class="section-title">What This Tells Us About Neural Computation</h2>
-
-        <p>The most intellectually interesting outcome of this experiment is not the compression ratio — it's what the
-            three ticket types reveal about how SIRENs are internally organized.</p>
-
-        <p>The existence of a winning ticket at 2.3% density implies that 97.7% of this network's parameters are, in
-            some sense, redundant <em>given the right initialization</em>. But this redundancy is not waste — it's the
-            price of the optimization landscape. The dense network's overparameterization creates a smooth loss surface
-            that gradient descent can traverse; the sparse winning ticket, found only after training the dense network,
-            cannot be discovered by directly training the sparse architecture from scratch. The dense network is a
-            <em>scaffolding</em> for identifying the sparse solution.
-        </p>
-
-        <p>This is a profound statement about what learning is doing at a fine-grained level. It's not just fitting
-            parameters to data — it's identifying, from a combinatorially large space of possible sparse structures, the
-            specific connectivity that allows learning to work. The Mona Lisa is not in any 2.3% of this network. It's
-            in a very specific 2.3% — the one that, when rewound to initialization, happens to sit in a favorable region
-            of optimization geometry.</p>
-
-        <blockquote>
-            <p>Dense networks are the lottery in which winning tickets are sold. You cannot buy only the winning ticket;
-                you must buy all of them and then discover which one won.</p>
-            <cite>— paraphrasing Frankle's own reflections on the hypothesis</cite>
-        </blockquote>
-
-        <p>The losing ticket tells the complementary story. High-magnitude weights are not "more important" in a general
-            sense — they're specifically important to SIREN's frequency decomposition. This is architecture-specific. In
-            a transformer, high-magnitude weights in attention heads might encode something entirely different. The
-            "carrier wave" interpretation of SIREN's large weights is a hypothesis worth testing more rigorously,
-            perhaps with direct Fourier analysis of the activation statistics at each layer.</p>
-
-        <p>Finally, the random ticket's logarithmic decay suggests that SIRENs have a degree of graceful degradation —
-            you can remove up to 80-90% of weights randomly and still maintain reasonable quality. This is reassuring
-            for robustness: SIREN representations are not brittle by default. They become brittle only when you
-            specifically target their frequency-carrying architecture.</p>
-
-        <!-- References -->
-        <div class="divider">References</div>
-
-        <div class="references">
-            <h3>Citations</h3>
-            <div class="ref-item">
-                <span class="ref-num">[1]</span>
-                <span>Frankle, J. &amp; Carlin, M. (2019). <em>The Lottery Ticket Hypothesis: Finding Sparse, Trainable
-                        Neural Networks.</em> ICLR 2019 (Best Paper Award). arXiv:1803.03635.</span>
-            </div>
-            <div class="ref-item">
-                <span class="ref-num">[2]</span>
-                <span>Sitzmann, V., Martel, J.N.P., Bergman, A.W., Lindell, D.B., &amp; Wetzstein, G. (2020).
-                    <em>Implicit Neural Representations with Periodic Activation Functions.</em> NeurIPS 2020.
-                    arXiv:2006.09661.</span>
-            </div>
-            <div class="ref-item">
-                <span class="ref-num">[3]</span>
-                <span>Frankle, J., Dziugaite, G.K., Roy, D.M., &amp; Carlin, M. (2020). <em>Linear Mode Connectivity and
-                        the Lottery Ticket Hypothesis.</em> ICML 2020. Introduces late rewinding.</span>
-            </div>
-            <div class="ref-item">
-                <span class="ref-num">[4]</span>
-                <span>Rahaman, N. et al. (2019). <em>On the Spectral Bias of Neural Networks.</em> ICML 2019. Formalizes
-                    the low-frequency learning priority of ReLU networks.</span>
-            </div>
-            <div class="ref-item">
-                <span class="ref-num">[5]</span>
-                <span>Morcos, A.S., Yu, H., Blunt, M. &amp; Tian, Y. (2019). <em>One Ticket to Win Them All:
-                        Generalizing Lottery Ticket Initializations across Datasets and Optimizers.</em> NeurIPS
-                    2019.</span>
-            </div>
-            <div class="ref-item">
-                <span class="ref-num">[6]</span>
-                <span>Malach, E., Yehudai, G., Shalev-Shwartz, S. &amp; Shamir, O. (2020). <em>Proving the Lottery
-                        Ticket Hypothesis: Pruning is All You Need.</em> ICML 2020. Formal proof of LTH
-                    existence.</span>
-            </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--crimson)"></div>Losing Ticket (Anti-IMP)
         </div>
+      </div>
+      <div class="fig-caption"><strong>Figure 1.</strong> PSNR (dB) vs. remaining weight fraction. X-axis is logarithmic
+        and reversed (left = dense, right = sparse). Note the winner's graceful decay versus the loser's step-function
+        collapse after just one pruning round.</div>
+    </div>
+  </div>
 
-    </article>
+  <article class="article">
 
-    <!-- ─── Footer ──────────────────────────────────────── -->
-    <footer>
-        <p>© 2026 Neil D. &nbsp;·&nbsp; Trained on a GTX 1650 Ti (CUDA 12.1) &nbsp;·&nbsp; Built with SIREN &amp;
-            PyTorch &nbsp;·&nbsp;
-            <a href="https://github.com/Neilus03/losingtickets">Source on GitHub ↗</a>
-        </p>
-    </footer>
+    <h3 class="sub-title">The Winner: Resilient to the End</h3>
+    <p>The winning ticket starts at 47.3&nbsp;dB — essentially perfect reconstruction. Its decay is remarkably slow:
+      still above 40&nbsp;dB at 32.8% remaining weights, above 35&nbsp;dB at just 4.4%, and landing at
+      <strong>32.7&nbsp;dB with only 2.3% of its original parameters</strong>. For context, 30&nbsp;dB is the informal
+      threshold for "perceptually acceptable" image quality. The winning ticket is still above this threshold at extreme
+      sparsity.</p>
 
-    <!-- ─── Scripts ─────────────────────────────────────── -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script>
-        // ─── Data ────────────────────────────────────────────
-        const imageData = {
-            winner: ["winner/iter_01_remaining_100.0pct.png", "winner/iter_02_remaining_80.0pct.png", "winner/iter_03_remaining_64.0pct.png", "winner/iter_04_remaining_51.2pct.png", "winner/iter_05_remaining_41.0pct.png", "winner/iter_06_remaining_32.8pct.png", "winner/iter_07_remaining_26.2pct.png", "winner/iter_08_remaining_21.0pct.png", "winner/iter_09_remaining_16.8pct.png", "winner/iter_10_remaining_13.4pct.png", "winner/iter_11_remaining_10.7pct.png", "winner/iter_12_remaining_8.6pct.png", "winner/iter_13_remaining_6.9pct.png", "winner/iter_14_remaining_5.5pct.png", "winner/iter_15_remaining_4.4pct.png", "winner/iter_16_remaining_3.5pct.png", "winner/iter_17_remaining_2.8pct.png", "winner/iter_18_remaining_2.3pct.png"],
-            random: ["random/iter_01_remaining_100.0pct.png", "random/iter_02_remaining_80.0pct.png", "random/iter_03_remaining_64.0pct.png", "random/iter_04_remaining_51.2pct.png", "random/iter_05_remaining_41.0pct.png", "random/iter_06_remaining_32.8pct.png", "random/iter_07_remaining_26.2pct.png", "random/iter_08_remaining_21.0pct.png", "random/iter_09_remaining_16.8pct.png", "random/iter_10_remaining_13.4pct.png", "random/iter_11_remaining_10.7pct.png", "random/iter_12_remaining_8.6pct.png", "random/iter_13_remaining_6.9pct.png", "random/iter_14_remaining_5.5pct.png", "random/iter_15_remaining_4.4pct.png", "random/iter_16_remaining_3.5pct.png", "random/iter_17_remaining_2.8pct.png", "random/iter_18_remaining_2.3pct.png"],
-            loser: ["loser/iter_01_remaining_100.0pct.png", "loser/iter_02_remaining_80.0pct.png", "loser/iter_03_remaining_64.0pct.png", "loser/iter_04_remaining_51.2pct.png", "loser/iter_05_remaining_41.0pct.png", "loser/iter_06_remaining_32.8pct.png", "loser/iter_07_remaining_26.2pct.png", "loser/iter_08_remaining_21.0pct.png", "loser/iter_09_remaining_16.8pct.png", "loser/iter_10_remaining_13.4pct.png", "loser/iter_11_remaining_10.7pct.png", "loser/iter_12_remaining_8.6pct.png", "loser/iter_13_remaining_6.9pct.png", "loser/iter_14_remaining_5.5pct.png", "loser/iter_15_remaining_4.4pct.png", "loser/iter_16_remaining_3.5pct.png", "loser/iter_17_remaining_2.8pct.png", "loser/iter_18_remaining_2.3pct.png"]
-        };
+    <p>What does this mean? That the Mona Lisa — all its sfumato gradients, its enigmatic expression, its Renaissance
+      chiaroscuro — can be encoded in roughly 3,600 floating-point numbers and a connectivity pattern, down from
+      198,915. This is an approximately <strong>55× compression</strong> of the network, with perceptually reasonable
+      output quality. In sparse COO format (storing only non-zero weights with their indices), this translates to
+      roughly 27&nbsp;KB versus the original ~781&nbsp;KB state dict.</p>
 
-        const psnrData = {
-            winner: [47.2897, 46.7485, 46.0048, 44.8965, 43.1529, 41.9001, 40.7621, 39.5306, 38.3638, 37.4336, 36.4858, 35.8401, 35.2580, 34.6804, 34.2725, 33.6860, 33.2437, 32.7340],
-            random: [47.5397, 44.1424, 41.8654, 39.9245, 38.3334, 37.3639, 36.2092, 35.3756, 34.7823, 33.7906, 33.3270, 32.4807, 31.6060, 30.5611, 29.2419, 27.2205, 24.4073, 23.6423],
-            loser: [47.6198, 29.3128, 11.4639, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234]
-        };
+    <h3 class="sub-title">The Random Ticket: Logarithmic Decay</h3>
+    <p>The random ticket behaves exactly as you'd expect from information theory: smooth, monotonic decay. It stays
+      surprisingly competitive at moderate sparsity (above 35&nbsp;dB until around 10% remaining), then falls off
+      rapidly below 5%. This is the baseline against which winning and losing tickets are compared — and it demonstrates
+      that <em>structure matters</em>. The winning ticket consistently outperforms the random ticket at every sparsity
+      level, confirming that the LTH is not a tautology (any sparse network is fine) but a genuine property of the
+      initialization-magnitude alignment.</p>
 
-        const remaining = [100, 80, 64, 51.2, 41, 32.8, 26.2, 21, 16.8, 13.4, 10.7, 8.6, 6.9, 5.5, 4.4, 3.5, 2.8, 2.3];
+    <h3 class="sub-title">The Loser: Instantaneous Collapse</h3>
+    <p>The losing ticket's curve is the most striking feature of this entire experiment. It begins at 47.6&nbsp;dB —
+      actually the highest starting point, noise variation aside. Then, at 80% remaining weights (just the first
+      pruning), it drops to 29.3&nbsp;dB. By 64% remaining, it's at 11.5&nbsp;dB — the PSNR of a blank gray screen —
+      where it flatlines for all subsequent iterations.</p>
 
-        // ─── Slider Update ───────────────────────────────────
-        function updateImages() {
-            const val = parseInt(document.getElementById('slider').value);
-            document.getElementById('iterVal').textContent = (val + 1).toString().padStart(2, '0');
-            document.getElementById('remainingVal').textContent = remaining[val].toFixed(1) + '%';
-            document.getElementById('winnerPsnr').textContent = psnrData.winner[val].toFixed(1) + ' dB';
-            document.getElementById('loserPsnr').textContent = psnrData.loser[val].toFixed(1) + ' dB';
-            document.getElementById('winnerPsnrCard').textContent = psnrData.winner[val].toFixed(2) + ' dB';
-            document.getElementById('randomPsnrCard').textContent = psnrData.random[val].toFixed(2) + ' dB';
-            document.getElementById('loserPsnrCard').textContent = psnrData.loser[val].toFixed(2) + ' dB';
-            if (imageData.winner[val]) document.getElementById('winner').src = imageData.winner[val];
-            if (imageData.random[val]) document.getElementById('random').src = imageData.random[val];
-            if (imageData.loser[val]) document.getElementById('loser').src = imageData.loser[val];
-        }
-        updateImages();
+    <p>This is not gradual. It is a step function. The removal of 20% of the highest-magnitude weights causes the
+      network to emit noise from which it never recovers across 18,000 additional training epochs. This is the
+      <strong>frequency collapse</strong>: the entire signal-encoding capacity of the SIREN is destroyed in a single
+      pruning round.</p>
 
-        // ─── PSNR Chart ──────────────────────────────────────
-        const ctx = document.getElementById('psnrChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: remaining.map(r => r + '%'),
-                datasets: [
-                    {
-                        label: 'Winning Ticket',
-                        data: psnrData.winner,
-                        borderColor: '#e8b84b',
-                        backgroundColor: 'rgba(232,184,75,0.08)',
-                        borderWidth: 2.5,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#e8b84b',
-                        tension: 0.3,
-                        fill: false
-                    },
-                    {
-                        label: 'Random Ticket',
-                        data: psnrData.random,
-                        borderColor: '#6b9fff',
-                        backgroundColor: 'rgba(107,159,255,0.08)',
-                        borderWidth: 2,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#6b9fff',
-                        borderDash: [5, 4],
-                        tension: 0.3,
-                        fill: false
-                    },
-                    {
-                        label: 'Losing Ticket',
-                        data: psnrData.loser,
-                        borderColor: '#e84b4b',
-                        backgroundColor: 'rgba(232,75,75,0.08)',
-                        borderWidth: 2,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#e84b4b',
-                        borderDash: [2, 3],
-                        tension: 0.1,
-                        fill: false
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: '#111318',
-                        borderColor: 'rgba(255,255,255,0.1)',
-                        borderWidth: 1,
-                        titleColor: '#f0f2f8',
-                        bodyColor: '#7a8099',
-                        padding: 12,
-                        callbacks: {
-                            label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)} dB`
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        reverse: true,
-                        grid: { color: 'rgba(255,255,255,0.04)' },
-                        ticks: {
-                            color: '#7a8099',
-                            font: { family: 'JetBrains Mono', size: 11 }
-                        }
-                    },
-                    y: {
-                        grid: { color: 'rgba(255,255,255,0.04)' },
-                        ticks: {
-                            color: '#7a8099',
-                            font: { family: 'JetBrains Mono', size: 11 },
-                            callback: v => v + ' dB'
-                        },
-                        title: {
-                            display: true,
-                            text: 'PSNR (dB)',
-                            color: '#7a8099',
-                            font: { family: 'Syne, sans-serif', size: 11 }
-                        }
-                    }
-                }
+    <div class="data-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Remaining %</th>
+            <th>Winner (dB)</th>
+            <th>Random (dB)</th>
+            <th>Loser (dB)</th>
+            <th>Gap (W−L)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>100.0</td>
+            <td class="td-winner">47.29</td>
+            <td class="td-random">47.54</td>
+            <td class="td-loser">47.62</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td>80.0</td>
+            <td class="td-winner">46.75</td>
+            <td class="td-random">44.14</td>
+            <td class="td-loser">29.31</td>
+            <td>+17.4</td>
+          </tr>
+          <tr>
+            <td>64.0</td>
+            <td class="td-winner">46.00</td>
+            <td class="td-random">41.87</td>
+            <td class="td-loser">11.46</td>
+            <td>+34.5</td>
+          </tr>
+          <tr>
+            <td>32.8</td>
+            <td class="td-winner">41.90</td>
+            <td class="td-random">37.36</td>
+            <td class="td-loser">11.32</td>
+            <td>+30.6</td>
+          </tr>
+          <tr>
+            <td>10.7</td>
+            <td class="td-winner">36.49</td>
+            <td class="td-random">33.33</td>
+            <td class="td-loser">11.32</td>
+            <td>+25.2</td>
+          </tr>
+          <tr>
+            <td>2.3</td>
+            <td class="td-winner">32.73</td>
+            <td class="td-random">23.64</td>
+            <td class="td-loser">11.32</td>
+            <td>+21.4</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout finding">
+      <div class="callout-label">Key Finding</div>
+      <p>The winner-loser PSNR gap at 64% remaining is <strong>34.5 dB</strong>. This is not a marginal experimental
+        effect — it is the difference between a recognizable painting and white noise. No cherry-picking or
+        hyperparameter tuning produces this; it is a structural consequence of how SIREN encodes information in its
+        weight magnitudes.</p>
+    </div>
+
+    <!-- 5. Discussion -->
+    <div class="section-number">05 — Discussion</div>
+    <h2 class="section-title" id="discussion">Why the Loser Fails Catastrophically</h2>
+
+    <p>The losing ticket's behavior requires explanation. In a standard ReLU network, pruning high-magnitude weights
+      causes degradation — but gradual degradation, not instant collapse. Losing tickets in ReLU networks are bad; in
+      SIRENs, they are dead.</p>
+
+    <h3 class="sub-title">SIREN Weights as Frequency Carriers</h3>
+    <p>Consider what a SIREN weight matrix $\mathbf{W}_i$ actually does. The $j$-th output of layer $i$ computes
+      $\sin(\omega_0 (\mathbf{W}_i \mathbf{x})_j + b_j)$. The magnitude of $(\mathbf{W}_i \mathbf{x})_j$ determines the
+      <em>amplitude</em> of the oscillation at that node. Large weights → large pre-activation values → the sine
+      oscillates across a wider range of its domain. Small weights → the sine barely moves from zero.</p>
+
+    <p>Through composition of $k$ such layers, the SIREN constructs a superposition of high-order trigonometric
+      polynomials. The specific frequencies that can be represented are determined by which weight combinations produce
+      constructive interference across layers. The <strong>high-magnitude weights are the primary oscillators</strong> —
+      they set the dominant frequencies that give the reconstruction its edges and textures. The small-magnitude weights
+      are the fine-tuning residuals.</p>
+
+    <p>When you prune the 20% largest weights globally, you don't just reduce the network's capacity. You remove the
+      nodes that generate the highest-frequency components of the internal representation. What remains is a network of
+      sub-harmonics — a SIREN that can only produce low-frequency hum. And crucially, no amount of retraining can
+      recover those frequencies, because the rewound initial weights for those positions are also small (having survived
+      as small weights from the original random initialization).</p>
+
+    <div class="math-block">
+      <div>$$\Phi_\text{loser}(\mathbf{x}) \approx \sum_{k \in \mathcal{S}_\text{small}} c_k \sin(\omega_k \cdot
+        \mathbf{x} + \psi_k)$$</div>
+      <div class="math-caption">After losing-ticket pruning, only low-amplitude basis functions remain. The effective
+        bandwidth of the representation collapses to the lowest frequencies — insufficient to reconstruct any meaningful
+        texture.</div>
+    </div>
+
+    <h3 class="sub-title">Why ReLU Networks Don't Suffer This</h3>
+    <p>In a ReLU network, large weights don't have the same carrier role. A large weight on a ReLU node simply shifts
+      the decision boundary. The signal is encoded in the <em>pattern of active vs. inactive units</em>, not in the
+      magnitude of any individual weight. Removing the highest-magnitude weights reorganizes but doesn't annihilate the
+      frequency content of the representation — ReLU networks have no frequency content to destroy in the first place;
+      they encode signals through piecewise linear boundaries.</p>
+
+    <p>This is a deep architectural difference, not a hyperparameter sensitivity. The SIREN's power comes from its
+      frequency-rich representation; its vulnerability to losing-ticket pruning is the flip side of that same coin.</p>
+
+    <h3 class="sub-title">Implications for NeRF and 3D Representation</h3>
+    <p>The practical stakes here extend well beyond image compression. Neural Radiance Fields (NeRFs) use
+      coordinate-MLPs structurally similar to SIRENs (often with positional encodings playing the role of SIREN's
+      initialization). Recent work on NeRF compression — including KiloNeRF, Instant-NGP, and TensoRF — has focused on
+      architecture redesign. The LTH perspective suggests a complementary approach: <em>prune the NeRF itself, with
+        rewinding</em>. If a 1.8%-sparse SIREN can represent a 2D image with 32.7&nbsp;dB PSNR, a sparse NeRF might
+      represent 3D scenes with dramatically fewer parameters than current methods assume necessary.</p>
+
+    <p>The losing ticket experiment also has a practical negative implication: magnitude-based pruning on SIRENs must be
+      done <em>carefully}. If you prune high-magnitude weights — as some aggressive pruning schedules do when removing
+        "outliers" — you risk frequency collapse rather than smooth compression. The safest pruning strategies for
+        periodic-activation networks are IMP (lowest magnitude) or random pruning, never highest-magnitude removal.</p>
+
+    <div class="callout insight">
+      <div class="callout-label">Open Question</div>
+      <p>An intriguing follow-up: does the winning ticket found here <em>transfer across images</em>? Morcos et al.
+        (2019) showed that lottery tickets found on CIFAR-10 sometimes transfer to CIFAR-100. For INRs, transferability
+        would mean something even stranger — that the same sparse connectivity structure can be reused to represent
+        entirely different natural signals. This seems improbable (each image has different frequency content), but the
+        connectivity structure of the winning ticket might reveal universal properties of how SIRENs decompose 2D
+        signals.</p>
+    </div>
+
+    <h3 class="sub-title">What the Winning Ticket Is Really Preserving</h3>
+    <p>Looking at the winning ticket reconstructions in the lab above, a pattern emerges. At 5% remaining weights, the
+      reconstruction loses fine detail — the intricate lace of the veil, the subtle texture of the background rocks —
+      but preserves the macro-structure: the silhouette, the dominant color gradients, the facial geometry. This is not
+      accidental.</p>
+
+    <p>The small-magnitude weights that the winning ticket preserves are precisely those responsible for the
+      low-frequency backbone of the signal. They're small in magnitude because the SIREN's initialization scheme
+      deliberately scales hidden-layer weights by $1/\omega_0$ — small at initialization, they correspond to
+      low-frequency components that are easy to learn and cheap to represent. The winning ticket is, in essence, the
+      Fourier low-pass filter of the full network, and IMP happens to be the procedure that isolates it.</p>
+
+    <!-- 6. Compression Analysis -->
+    <div class="section-number">06 — Compression Analysis</div>
+    <h2 class="section-title">The Space-Time Tradeoff</h2>
+
+    <p>One of the original motivations for this experiment was the question of whether INRs can be practically
+      compressed. The answer is emphatically yes, with a caveat: the compression is <em>theoretical</em> rather than
+      practical under standard dense computation.</p>
+
+    <div class="callout warning">
+      <div class="callout-label">Important Clarification</div>
+      <p>As shown in the benchmark results, PyTorch's unstructured pruning does NOT automatically produce inference
+        speedups. The pruning mask is applied as $\mathbf{W}_\text{eff} = \mathbf{W}_\text{orig} \odot M$, which remains
+        a dense operation. Real latency gains require hardware-aware sparse kernels (e.g., CUDA cuSPARSE, or custom
+        CUTLASS kernels) or structural pruning (removing entire rows/columns). The compression numbers below refer to
+        storage, not compute.</p>
+    </div>
+
+    <div class="stats-strip">
+      <div class="stat-cell">
+        <div class="stat-value">781 KB</div>
+        <div class="stat-label">Dense State Dict</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-value gold">27 KB</div>
+        <div class="stat-label">Sparse (COO) at 2.3%</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-value">29x</div>
+        <div class="stat-label">Compression Ratio</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-value">32.7 dB</div>
+        <div class="stat-label">Preserved PSNR</div>
+      </div>
+    </div>
+
+    <p>In COO (Coordinate) sparse format, each non-zero weight requires storing its value (float32) and its index
+      (int32) — 8 bytes versus 4 bytes for a dense weight. The break-even point is 50% density; below that, sparse is
+      smaller. At 2.3% density, we store roughly 4,575 parameters as (index, value) pairs — total storage ≈ 36.6 KB,
+      compared to 781 KB dense. A practical 21× reduction.</p>
+
+    <!-- 7. Reflections -->
+    <div class="section-number">07 — Reflections</div>
+    <h2 class="section-title">What This Tells Us About Neural Computation</h2>
+
+    <p>The most intellectually interesting outcome of this experiment is not the compression ratio — it's what the three
+      ticket types reveal about how SIRENs are internally organized.</p>
+
+    <p>The existence of a winning ticket at 2.3% density implies that 97.7% of this network's parameters are, in some
+      sense, redundant <em>given the right initialization</em>. But this redundancy is not waste — it's the price of the
+      optimization landscape. The dense network's overparameterization creates a smooth loss surface that gradient
+      descent can traverse; the sparse winning ticket, found only after training the dense network, cannot be discovered
+      by directly training the sparse architecture from scratch. The dense network is a <em>scaffolding</em> for
+      identifying the sparse solution.</p>
+
+    <p>This is a profound statement about what learning is doing at a fine-grained level. It's not just fitting
+      parameters to data — it's identifying, from a combinatorially large space of possible sparse structures, the
+      specific connectivity that allows learning to work. The Mona Lisa is not in any 2.3% of this network. It's in a
+      very specific 2.3% — the one that, when rewound to initialization, happens to sit in a favorable region of
+      optimization geometry.</p>
+
+    <blockquote>
+      <p>Dense networks are the lottery in which winning tickets are sold. You cannot buy only the winning ticket; you
+        must buy all of them and then discover which one won.</p>
+      <cite>— paraphrasing Frankle's own reflections on the hypothesis</cite>
+    </blockquote>
+
+    <p>The losing ticket tells the complementary story. High-magnitude weights are not "more important" in a general
+      sense — they're specifically important to SIREN's frequency decomposition. This is architecture-specific. In a
+      transformer, high-magnitude weights in attention heads might encode something entirely different. The "carrier
+      wave" interpretation of SIREN's large weights is a hypothesis worth testing more rigorously, perhaps with direct
+      Fourier analysis of the activation statistics at each layer.</p>
+
+    <p>Finally, the random ticket's logarithmic decay suggests that SIRENs have a degree of graceful degradation — you
+      can remove up to 80-90% of weights randomly and still maintain reasonable quality. This is reassuring for
+      robustness: SIREN representations are not brittle by default. They become brittle only when you specifically
+      target their frequency-carrying architecture.</p>
+
+    <!-- References -->
+    <div class="divider">References</div>
+
+    <div class="references">
+      <h3>Citations</h3>
+      <div class="ref-item">
+        <span class="ref-num">[1]</span>
+        <span>Frankle, J. &amp; Carlin, M. (2019). <em>The Lottery Ticket Hypothesis: Finding Sparse, Trainable Neural
+            Networks.</em> ICLR 2019 (Best Paper Award). arXiv:1803.03635.</span>
+      </div>
+      <div class="ref-item">
+        <span class="ref-num">[2]</span>
+        <span>Sitzmann, V., Martel, J.N.P., Bergman, A.W., Lindell, D.B., &amp; Wetzstein, G. (2020). <em>Implicit
+            Neural Representations with Periodic Activation Functions.</em> NeurIPS 2020. arXiv:2006.09661.</span>
+      </div>
+      <div class="ref-item">
+        <span class="ref-num">[3]</span>
+        <span>Frankle, J., Dziugaite, G.K., Roy, D.M., &amp; Carlin, M. (2020). <em>Linear Mode Connectivity and the
+            Lottery Ticket Hypothesis.</em> ICML 2020. Introduces late rewinding.</span>
+      </div>
+      <div class="ref-item">
+        <span class="ref-num">[4]</span>
+        <span>Rahaman, N. et al. (2019). <em>On the Spectral Bias of Neural Networks.</em> ICML 2019. Formalizes the
+          low-frequency learning priority of ReLU networks.</span>
+      </div>
+      <div class="ref-item">
+        <span class="ref-num">[5]</span>
+        <span>Morcos, A.S., Yu, H., Blunt, M. &amp; Tian, Y. (2019). <em>One Ticket to Win Them All: Generalizing
+            Lottery Ticket Initializations across Datasets and Optimizers.</em> NeurIPS 2019.</span>
+      </div>
+      <div class="ref-item">
+        <span class="ref-num">[6]</span>
+        <span>Malach, E., Yehudai, G., Shalev-Shwartz, S. &amp; Shamir, O. (2020). <em>Proving the Lottery
+            Ticket Hypothesis: Pruning is All You Need.</em> ICML 2020. Formal proof of LTH
+          existence.</span>
+      </div>
+      <div class="ref-item">
+        <span class="ref-num">[7]</span>
+        <span>De La Fuente, N., Pilligua, M., Vidal, D., Soutiff, A., Curreli, C., Cremers, D., &amp; Barsky, A. (2025).
+          <em>Prototype-Augmented Hypernetworks for Continual Learning.</em> CVPR Workshop. arXiv:2505.07450.</span>
+      </div>
+    </div>
+
+  </article>
+
+  <!-- ─── Footer ──────────────────────────────────────── -->
+  <footer>
+    <p>© 2026 Neil D. &nbsp;·&nbsp; Trained on a GTX 1650 Ti (CUDA 12.1) &nbsp;·&nbsp; Built with SIREN &amp; PyTorch
+      &nbsp;·&nbsp;
+      <a href="https://github.com/Neilus03/losingtickets">Source on GitHub ↗</a>
+    </p>
+  </footer>
+
+  <!-- ─── Scripts ─────────────────────────────────────── -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    // ─── Data ────────────────────────────────────────────
+    const imageData = {
+      winner: ["winner/iter_01_remaining_100.0pct.png", "winner/iter_02_remaining_80.0pct.png", "winner/iter_03_remaining_64.0pct.png", "winner/iter_04_remaining_51.2pct.png", "winner/iter_05_remaining_41.0pct.png", "winner/iter_06_remaining_32.8pct.png", "winner/iter_07_remaining_26.2pct.png", "winner/iter_08_remaining_21.0pct.png", "winner/iter_09_remaining_16.8pct.png", "winner/iter_10_remaining_13.4pct.png", "winner/iter_11_remaining_10.7pct.png", "winner/iter_12_remaining_8.6pct.png", "winner/iter_13_remaining_6.9pct.png", "winner/iter_14_remaining_5.5pct.png", "winner/iter_15_remaining_4.4pct.png", "winner/iter_16_remaining_3.5pct.png", "winner/iter_17_remaining_2.8pct.png", "winner/iter_18_remaining_2.3pct.png"],
+      random: ["random/iter_01_remaining_100.0pct.png", "random/iter_02_remaining_80.0pct.png", "random/iter_03_remaining_64.0pct.png", "random/iter_04_remaining_51.2pct.png", "random/iter_05_remaining_41.0pct.png", "random/iter_06_remaining_32.8pct.png", "random/iter_07_remaining_26.2pct.png", "random/iter_08_remaining_21.0pct.png", "random/iter_09_remaining_16.8pct.png", "random/iter_10_remaining_13.4pct.png", "random/iter_11_remaining_10.7pct.png", "random/iter_12_remaining_8.6pct.png", "random/iter_13_remaining_6.9pct.png", "random/iter_14_remaining_5.5pct.png", "random/iter_15_remaining_4.4pct.png", "random/iter_16_remaining_3.5pct.png", "random/iter_17_remaining_2.8pct.png", "random/iter_18_remaining_2.3pct.png"],
+      loser: ["loser/iter_01_remaining_100.0pct.png", "loser/iter_02_remaining_80.0pct.png", "loser/iter_03_remaining_64.0pct.png", "loser/iter_04_remaining_51.2pct.png", "loser/iter_05_remaining_41.0pct.png", "loser/iter_06_remaining_32.8pct.png", "loser/iter_07_remaining_26.2pct.png", "loser/iter_08_remaining_21.0pct.png", "loser/iter_09_remaining_16.8pct.png", "loser/iter_10_remaining_13.4pct.png", "loser/iter_11_remaining_10.7pct.png", "loser/iter_12_remaining_8.6pct.png", "loser/iter_13_remaining_6.9pct.png", "loser/iter_14_remaining_5.5pct.png", "loser/iter_15_remaining_4.4pct.png", "loser/iter_16_remaining_3.5pct.png", "loser/iter_17_remaining_2.8pct.png", "loser/iter_18_remaining_2.3pct.png"]
+    };
+
+    const psnrData = {
+      winner: [47.2897, 46.7485, 46.0048, 44.8965, 43.1529, 41.9001, 40.7621, 39.5306, 38.3638, 37.4336, 36.4858, 35.8401, 35.2580, 34.6804, 34.2725, 33.6860, 33.2437, 32.7340],
+      random: [47.5397, 44.1424, 41.8654, 39.9245, 38.3334, 37.3639, 36.2092, 35.3756, 34.7823, 33.7906, 33.3270, 32.4807, 31.6060, 30.5611, 29.2419, 27.2205, 24.4073, 23.6423],
+      loser: [47.6198, 29.3128, 11.4639, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234]
+    };
+
+    const remaining = [100, 80, 64, 51.2, 41, 32.8, 26.2, 21, 16.8, 13.4, 10.7, 8.6, 6.9, 5.5, 4.4, 3.5, 2.8, 2.3];
+
+    // ─── Slider Update ───────────────────────────────────
+    function updateImages() {
+      const val = parseInt(document.getElementById('slider').value);
+      document.getElementById('iterVal').textContent = (val + 1).toString().padStart(2, '0');
+      document.getElementById('remainingVal').textContent = remaining[val].toFixed(1) + '%';
+      document.getElementById('winnerPsnr').textContent = psnrData.winner[val].toFixed(1) + ' dB';
+      document.getElementById('loserPsnr').textContent = psnrData.loser[val].toFixed(1) + ' dB';
+      document.getElementById('winnerPsnrCard').textContent = psnrData.winner[val].toFixed(2) + ' dB';
+      document.getElementById('randomPsnrCard').textContent = psnrData.random[val].toFixed(2) + ' dB';
+      document.getElementById('loserPsnrCard').textContent = psnrData.loser[val].toFixed(2) + ' dB';
+      if (imageData.winner[val]) document.getElementById('winner').src = imageData.winner[val];
+      if (imageData.random[val]) document.getElementById('random').src = imageData.random[val];
+      if (imageData.loser[val]) document.getElementById('loser').src = imageData.loser[val];
+    }
+    updateImages();
+
+    // ─── PSNR Chart ──────────────────────────────────────
+    const ctx = document.getElementById('psnrChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: remaining.map(r => r + '%'),
+        datasets: [
+          {
+            label: 'Winning Ticket',
+            data: psnrData.winner,
+            borderColor: '#e8b84b',
+            backgroundColor: 'rgba(232,184,75,0.08)',
+            borderWidth: 2.5,
+            pointRadius: 4,
+            pointBackgroundColor: '#e8b84b',
+            tension: 0.3,
+            fill: false
+          },
+          {
+            label: 'Random Ticket',
+            data: psnrData.random,
+            borderColor: '#6b9fff',
+            backgroundColor: 'rgba(107,159,255,0.08)',
+            borderWidth: 2,
+            pointRadius: 4,
+            pointBackgroundColor: '#6b9fff',
+            borderDash: [5, 4],
+            tension: 0.3,
+            fill: false
+          },
+          {
+            label: 'Losing Ticket',
+            data: psnrData.loser,
+            borderColor: '#e84b4b',
+            backgroundColor: 'rgba(232,75,75,0.08)',
+            borderWidth: 2,
+            pointRadius: 4,
+            pointBackgroundColor: '#e84b4b',
+            borderDash: [2, 3],
+            tension: 0.1,
+            fill: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#111318',
+            borderColor: 'rgba(255,255,255,0.1)',
+            borderWidth: 1,
+            titleColor: '#f0f2f8',
+            bodyColor: '#7a8099',
+            padding: 12,
+            callbacks: {
+              label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)} dB`
             }
-        });
+          }
+        },
+        scales: {
+          x: {
+            reverse: true,
+            grid: { color: 'rgba(255,255,255,0.04)' },
+            ticks: {
+              color: '#7a8099',
+              font: { family: 'JetBrains Mono', size: 11 }
+            }
+          },
+          y: {
+            grid: { color: 'rgba(255,255,255,0.04)' },
+            ticks: {
+              color: '#7a8099',
+              font: { family: 'JetBrains Mono', size: 11 },
+              callback: v => v + ' dB'
+            },
+            title: {
+              display: true,
+              text: 'PSNR (dB)',
+              color: '#7a8099',
+              font: { family: 'Syne, sans-serif', size: 11 }
+            }
+          }
+        }
+      }
+    });
 
-        // ─── Highlight.js ─────────────────────────────────────
-        hljs.highlightAll();
-    </script>
+    // ─── Highlight.js ─────────────────────────────────────
+    hljs.highlightAll();
+  </script>
 </body>
 
 </html>

@@ -21,7 +21,7 @@ f(\mathbf{x}) = \sin(\omega_0 \mathbf{W}\mathbf{x} + \mathbf{b})
 ```
 *   **Target Image:** Leonardo da Vinci’s *Mona Lisa* (256 x 256).
 *   **Parameters:** ~262,000 floats.
-*   **Initialization:** Uniformly sampled from `[-sqrt(6/n), sqrt(6/n)]` with `omega_0 = 30` for the first layer to capture high-frequency details.
+*   **Initialization:** Uniformly sampled from `[-sqrt(6/n), sqrt(6/n)]` with ```math \mathbf{W}``` = 30 for the first layer to capture high-frequency details.
 
 ### 2.2 Iterative Magnitude Pruning (IMP)
 We follow a strict pruning loop with **Weight Rewinding**:

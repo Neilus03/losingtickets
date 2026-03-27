@@ -63,6 +63,19 @@ def main():
         print("Baseline already exists. Skipping baseline training.")
         
     # Phase 5: Run Iterative Pruning
+    # Winner
+    run_pruning_pipeline(
+        "winner", prune_winning_ticket, initial_weights_path, config, coords, pixels,
+        lambda: SIREN(hidden_features=config.HIDDEN_FEATURES, hidden_layers=config.HIDDEN_LAYERS, omega_0=config.OMEGA_0)
+    )
+    
+    # Random
+    run_pruning_pipeline(
+        "random", prune_random_ticket, initial_weights_path, config, coords, pixels,
+        lambda: SIREN(hidden_features=config.HIDDEN_FEATURES, hidden_layers=config.HIDDEN_LAYERS, omega_0=config.OMEGA_0)
+    )
+    
+    # Loser
     run_pruning_pipeline(
         "loser", prune_losing_ticket, initial_weights_path, config, coords, pixels,
         lambda: SIREN(hidden_features=config.HIDDEN_FEATURES, hidden_layers=config.HIDDEN_LAYERS, omega_0=config.OMEGA_0)
