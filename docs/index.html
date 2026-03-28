@@ -1127,6 +1127,182 @@
       text-transform: uppercase;
       z-index: 2;
     }
+
+    /* ─── Causality Grid (Dynamic and Visual) ───────────────── */
+    .causality-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      margin: 3.5rem 0;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+    }
+
+    .causality-row {
+      display: grid;
+      grid-template-columns: 1.4fr 24px 1.2fr 24px 1.4fr;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .grid-box {
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem 1rem;
+      min-height: 120px;
+      display: flex;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .box-content {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      position: relative;
+      z-index: 2;
+      /* Keeps text above animations */
+    }
+
+    .box-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 0.5rem;
+    }
+
+    .box-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      color: var(--heading);
+      line-height: 1.4;
+    }
+
+    .gold-text {
+      color: var(--gold);
+    }
+
+    .grid-arrow {
+      color: var(--text-dim);
+      opacity: 0.4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+    }
+
+    /* ─── Visual Backgrounds & Animations ─── */
+    .viz-bg {
+      position: absolute;
+      pointer-events: none;
+    }
+
+    /* Spirals */
+    .spiral-svg {
+      width: 140px;
+      height: 140px;
+      bottom: -40px;
+      right: -30px;
+    }
+
+    @keyframes spin {
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes spin-reverse {
+      100% {
+        transform: rotate(-360deg);
+      }
+    }
+
+    .spin-slow {
+      animation: spin 25s linear infinite;
+    }
+
+    .spin-fast {
+      animation: spin-reverse 15s linear infinite;
+    }
+
+    /* Gaussians */
+    .dist-svg {
+      width: 100%;
+      height: 90px;
+      bottom: 0;
+      right: -10%;
+    }
+
+    /* Sine Waves */
+    .wave-container {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .wave-svg {
+      height: 100%;
+      width: 200%;
+      /* Double width so we can pan it infinitely */
+      position: absolute;
+      bottom: 0;
+      left: 0;
+    }
+
+    /* The slow wave translates by exactly 100 viewBox units (1 full cycle) */
+    @keyframes pan-slow {
+      100% {
+        transform: translateX(-50%);
+      }
+    }
+
+    .slow-wave {
+      animation: pan-slow 6s linear infinite;
+    }
+
+    /* The fast wave translates by exactly 20 viewBox units (1 full cycle) */
+    @keyframes pan-fast {
+      100% {
+        transform: translateX(-10%);
+      }
+    }
+
+    .fast-wave {
+      animation: pan-fast 1s linear infinite;
+    }
+
+    .gold-result {
+      border-color: rgba(232, 184, 75, 0.4);
+      background: linear-gradient(90deg, var(--bg-3) 0%, rgba(232, 184, 75, 0.08) 100%);
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .causality-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+      }
+
+      .grid-arrow {
+        transform: rotate(90deg);
+        margin: 0 auto;
+      }
+
+      .grid-box {
+        min-height: 100px;
+      }
+    }
   </style>
 </head>
 
@@ -1221,16 +1397,15 @@
     <div class="section-number">01 — Introduction</div>
     <h2 class="section-title">Why I Went Looking for Winning and Losing Tickets</h2>
 
-    <p class="drop-cap">During my undergrad at UAB, I took the Advanced Machine Learning course taught by <strong>Andrey
-        Barsky</strong>, one of the best teachers I've had the luck of learning from. The class was demanding in the
+    <p class="drop-cap">During my undergrad at UAB, I took the Advanced Machine Learning course taught by Andrey
+      Barsky, one of the best teachers I've had the luck of learning from. The class was demanding in the
       best way: every few weeks he would present a new idea that quietly rearranged how I thought about deep learning.
-      The
-      Neural Tangent Kernel. Low-Rank Adaptation. Continual learning. Model merging. And the one of interest for this
-      blog: the
-      <strong>Lottery Ticket Hypothesis</strong>.
+      The Neural Tangent Kernel. Low-Rank Adaptation. Continual learning. Model merging. And the one of interest for
+      this
+      blog: the <strong>Lottery Ticket Hypothesis</strong>.
     </p>
 
-    <p>Andrey introduced the LTH as a kind of philosophical provocation: inside every large, randomly initialized
+    <p>Andrey introduced the LTH as follows: inside every large, randomly initialized
       network, there exists a tiny sub-network that, if reset to its initial values and trained alone, can match the
       full network's performance. He showed the LTH paper's results: sparse architectures outperforming their
       dense parents with 21% of the original parameters. I just went: WOW. There was something
@@ -1298,7 +1473,7 @@
 
     <!-- 2. Background -->
     <div class="section-number">02 — Background</div>
-    <h2 class="section-title">Two Ideas That Collide</h2>
+    <h2 class="section-title" id="background">Two Ideas That Collide</h2>
 
     <h3 class="sub-title">The Spectral Bias Problem and SIREN's Solution</h3>
     <p>The core problem with using standard networks with ReLU activations as implicit representations is
@@ -1339,7 +1514,7 @@
     </p>
 
     <h3 class="sub-title">The Lottery Ticket Hypothesis</h3>
-    <p>Frankle &amp; Carlin's 2018 preprint (published at ICLR 2019, where it won a best paper award) presented a
+    <p>Frankle &amp; Carbin's 2018 preprint (published at ICLR 2019, where it won a best paper award) presented a
       simple but profound observation: <em>within any large randomly-initialized network, there exists a small
         subnetwork
         that, when reset to its original initialization values and trained in isolation, matches the performance of the
@@ -1351,7 +1526,7 @@
     <blockquote>
       <p>The winning tickets we find have won the initialization lottery: their connections have initial weights that
         make training particularly effective.</p>
-      <cite>— Frankle &amp; Carlin, ICLR 2019</cite>
+      <cite>— Frankle &amp; Carbin, ICLR 2019</cite>
     </blockquote>
 
     <p>The mechanism for finding them is called <strong>Iterative Magnitude Pruning (IMP)</strong> with weight
@@ -1458,7 +1633,7 @@
       interesting.
       The target: Leonardo da Vinci's
       <em>Mona
-        Lisa</em> aka <em>La Giocconda</em>, resized to 256×256 and normalized. I chose this image deliberately because
+        Lisa</em> aka <em>La Gioconda</em>, resized to 256×256 and normalized. I chose this image deliberately because
       it has a
       rich mix of
       low-frequency gradients (the sky, skin) and high-frequency detail (the veil, background foliage), making the
@@ -1684,19 +1859,117 @@
     <h3 class="sub-title">SIREN Weights as Frequency Carriers</h3>
     <p>Consider what a SIREN weight matrix $\mathbf{W}_i$ actually does. The $j$-th output of layer $i$ computes
       $\sin(\omega_0 (\mathbf{W}_i \mathbf{x})_j + b_j)$. The magnitude of $(\mathbf{W}_i \mathbf{x})_j$ determines the
-      <em>amplitude</em> of the oscillation at that node. Large weights → large pre-activation values → the sine
-      oscillates across a wider range of its domain. Small weights → the sine barely moves from zero.
+      <em>amplitude</em> of the oscillation at that node. This relationship—Weight Magnitude $\rightarrow$
+      Pre-activation $\rightarrow$ Oscillation—is the entire physical mechanism of SIREN architecture:
     </p>
+    <div class="causality-grid">
+      <div class="causality-row cyan-path">
+        <div class="grid-box condition-box">
+          <svg class="viz-bg spiral-svg spin-slow" viewBox="0 0 100 100">
+            <path
+              d="M50 50 C 50 38, 62 38, 62 50 C 62 68, 32 68, 32 50 C 32 20, 78 20, 78 50 C 78 90, 10 90, 10 50 C 10 0, 98 0, 98 50"
+              fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.15" />
+          </svg>
+          <div class="box-content">
+            <span class="box-label">Condition</span>
+            <span class="box-val">Small Weights</span>
+          </div>
+        </div>
+        <div class="grid-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </div>
+        <div class="grid-box distribution-box">
+          <svg class="viz-bg dist-svg" viewBox="0 0 100 100">
+            <path d="M 10 95 C 35 95 40 25 50 25 C 60 25 65 95 90 95" fill="currentColor" opacity="0.1" />
+            <path d="M 10 95 C 35 95 40 25 50 25 C 60 25 65 95 90 95" fill="none" stroke="currentColor" stroke-width="2"
+              opacity="0.4" />
+          </svg>
+          <div class="box-content">
+            <span class="box-label">Pre-Activation</span>
+            <span class="box-val">Near-zero domain</span>
+          </div>
+        </div>
+        <div class="grid-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </div>
+        <div class="grid-box wave-box">
+          <div class="wave-container">
+            <svg class="wave-svg slow-wave" viewBox="0 0 200 100" preserveAspectRatio="none">
+              <path d="M 0 80 Q 25 65 50 80 T 100 80 T 150 80 T 200 80" fill="none" stroke="currentColor"
+                stroke-width="2" opacity="0.4" stroke-linecap="round" />
+            </svg>
+          </div>
+          <div class="box-content">
+            <span class="box-label">Effect on Sine</span>
+            <span class="box-val">Barely moves from zero</span>
+          </div>
+        </div>
+      </div>
 
-    <p>Through composition of $k$ such layers, the SIREN constructs a superposition of high-order trigonometric
+      <div class="causality-row gold-path">
+        <div class="grid-box condition-box gold-result">
+          <svg class="viz-bg spiral-svg spin-fast" viewBox="0 0 100 100">
+            <path
+              d="M50 50 C 50 38, 62 38, 62 50 C 62 68, 32 68, 32 50 C 32 20, 78 20, 78 50 C 78 90, 10 90, 10 50 C 10 0, 98 0, 98 50"
+              fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round" opacity="0.5"
+              filter="drop-shadow(0 0 4px var(--gold))" />
+          </svg>
+          <div class="box-content">
+            <span class="box-label gold-text">Condition</span>
+            <span class="box-val gold-text">Large Weights</span>
+          </div>
+        </div>
+        <div class="grid-arrow gold-text">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </div>
+        <div class="grid-box distribution-box">
+          <svg class="viz-bg dist-svg gold-dist" viewBox="0 0 100 100">
+            <path d="M -10 95 C 20 95 30 65 50 65 C 70 65 80 95 110 95" fill="var(--gold)" opacity="0.1" />
+            <path d="M -10 95 C 20 95 30 65 50 65 C 70 65 80 95 110 95" fill="none" stroke="var(--gold)"
+              stroke-width="2" opacity="0.5" />
+          </svg>
+          <div class="box-content">
+            <span class="box-label gold-text">Pre-Activation</span>
+            <span class="box-val gold-text">Wide value spread</span>
+          </div>
+        </div>
+        <div class="grid-arrow gold-text">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </div>
+        <div class="grid-box wave-box gold-result">
+          <div class="wave-container">
+            <svg class="wave-svg fast-wave" viewBox="0 0 200 100" preserveAspectRatio="none">
+              <path
+                d="M 0 60 Q 5 25 10 60 T 20 60 T 30 60 T 40 60 T 50 60 T 60 60 T 70 60 T 80 60 T 90 60 T 100 60 T 110 60 T 120 60 T 130 60 T 140 60 T 150 60 T 160 60 T 170 60 T 180 60 T 190 60 T 200 60"
+                fill="none" stroke="var(--gold)" stroke-width="2" opacity="0.8" stroke-linecap="round"
+                stroke-linejoin="round" filter="drop-shadow(0 0 3px var(--gold))" />
+            </svg>
+          </div>
+          <div class="box-content">
+            <span class="box-label gold-text">Effect on Sine</span>
+            <span class="box-val gold-text">Oscillates rapidly</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p>Through composition of $k$ such layers, the Sinusoidal Representation Network constructs a superposition of
+      high-order trigonometric
       polynomials. The specific frequencies that can be represented are determined by which weight combinations produce
-      constructive interference across layers. The <strong>high-magnitude weights are the primary oscillators</strong> —
+      constructive interference across layers. The <strong>high-magnitude weights are the primary oscillators</strong>:
       they set the dominant frequencies that give the reconstruction its edges and textures. The small-magnitude weights
       are the fine-tuning residuals.</p>
 
-    <p>When you prune the 20% largest weights globally, you don't just reduce the network's capacity. You remove the
+    <p>When we prune the 20% largest weights globally, we don't just reduce the network's capacity, we remove the
       nodes that generate the highest-frequency components of the internal representation. What remains is a network of
-      sub-harmonics — a SIREN that can only produce low-frequency hum. And crucially, no amount of retraining can
+      sub-harmonics, a SIREN that can only produce low-frequency structures. And crucially, no amount of retraining can
       recover those frequencies, because the rewound initial weights for those positions are also small (having survived
       as small weights from the original random initialization).</p>
 
@@ -1709,27 +1982,29 @@
     </div>
 
     <h3 class="sub-title">Why ReLU Networks Don't Suffer This</h3>
-    <p>In a ReLU network, large weights don't have the same carrier role. A large weight on a ReLU node simply shifts
-      the decision boundary. The signal is encoded in the <em>pattern of active vs. inactive units</em>, not in the
-      magnitude of any individual weight. Removing the highest-magnitude weights reorganizes but doesn't annihilate the
-      frequency content of the representation — ReLU networks have no frequency content to destroy in the first place;
+    <p>In a ReLU network, large weights don't have the same frequency carrier role. A large weight on a ReLU node simply
+      shifts the decision boundary. The signal is encoded in the <em>pattern of active vs. inactive units</em>, not in
+      the
+      magnitude of any individual weight. Removing the highest-magnitude weights reorganizes but doesn't destroy the
+      frequency content of the representation, as ReLU networks have no frequency content to destroy in the first place;
       they encode signals through piecewise linear boundaries.</p>
 
-    <p>This is a deep architectural difference, not a hyperparameter sensitivity. The SIREN's power comes from its
-      frequency-rich representation; its vulnerability to losing-ticket pruning is the flip side of that same coin.</p>
+    <p>The SIREN's power comes from its frequency-rich representation; its vulnerability to losing-ticket pruning is the
+      flip side of that same coin.</p>
 
     <h3 class="sub-title">Implications for NeRF and 3D Representation</h3>
-    <p>The practical stakes here extend well beyond image compression. Neural Radiance Fields (NeRFs) use
+    <p>As I said in the introduction, I am a 3D Vision guy, so I couldn't leave without mentioning that the practical
+      stakes here extend well beyond image compression. Neural Radiance Fields (NeRFs) use
       coordinate-MLPs structurally similar to SIRENs (often with positional encodings playing the role of SIREN's
-      initialization). Recent work on NeRF compression — including KiloNeRF, Instant-NGP, and TensoRF — has focused on
+      initialization). Recent work on NeRF compression, such as KiloNeRF, Instant-NGP, and TensoRF, has focused on
       architecture redesign. The LTH perspective suggests a complementary approach: <em>prune the NeRF itself, with
         rewinding</em>. If a 1.8%-sparse SIREN can represent a 2D image with 32.7&nbsp;dB PSNR, a sparse NeRF might
       represent 3D scenes with dramatically fewer parameters than current methods assume necessary.</p>
 
     <p>The losing ticket experiment also has a practical negative implication: magnitude-based pruning on SIRENs must be
-      done carefully. If you prune high-magnitude weights — as some aggressive pruning schedules do when removing
-      "outliers" — you risk frequency collapse rather than smooth compression. The safest pruning strategies for
-      periodic-activation networks are IMP (lowest magnitude) or random pruning, never highest-magnitude removal.</p>
+      done carefully. If you prune high-magnitude weights as some aggressive pruning schedules do when removing
+      "outliers", you risk frequency collapse rather than smooth compression. The safest pruning strategy for
+      periodic-activation networks are IMP (lowest magnitude).</p>
 
     <div class="callout insight">
       <div class="callout-label">Open Question</div>
@@ -1763,7 +2038,7 @@
 
     <div class="callout warning">
       <div class="callout-label">Important Clarification</div>
-      <p>As shown in the benchmark results, PyTorch's unstructured pruning does NOT automatically produce inference
+      <p>PyTorch's unstructured pruning does NOT automatically produce inference
         speedups. The pruning mask is applied as $\mathbf{W}_\text{eff} = \mathbf{W}_\text{orig} \odot M$, which remains
         a dense operation. Real latency gains require hardware-aware sparse kernels (e.g., CUDA cuSPARSE, or custom
         CUTLASS kernels) or structural pruning (removing entire rows/columns). The compression numbers below refer to
@@ -1776,42 +2051,45 @@
         <div class="stat-label">Dense State Dict</div>
       </div>
       <div class="stat-cell">
-        <div class="stat-value gold">27 KB</div>
-        <div class="stat-label">Sparse (COO) at 2.3%</div>
+        <div class="stat-value gold">19 KB</div>
+        <div class="stat-label">Sparse (COO) at 1.2%</div>
       </div>
       <div class="stat-cell">
-        <div class="stat-value">29x</div>
+        <div class="stat-value">40x</div>
         <div class="stat-label">Compression Ratio</div>
       </div>
       <div class="stat-cell">
-        <div class="stat-value">32.7 dB</div>
+        <div class="stat-value">29.2dB</div>
         <div class="stat-label">Preserved PSNR</div>
       </div>
     </div>
 
     <p>In COO (Coordinate) sparse format, each non-zero weight requires storing its value (float32) and its index
-      (int32) — 8 bytes versus 4 bytes for a dense weight. The break-even point is 50% density; below that, sparse is
-      smaller. At 2.3% density, we store roughly 4,575 parameters as (index, value) pairs — total storage ≈ 36.6 KB,
-      compared to 781 KB dense. A practical 21× reduction.</p>
+      (int32): 8 bytes versus 4 bytes for a dense weight. The break-even point is 50% density; below that, sparse is
+      smaller. At 1.2% density, we store roughly 2,386 parameters as (index, value) pairs. Total storage ≈ 19 KB,
+      compared to 781 KB dense. A practical 41× reduction.</p>
 
     <!-- 7. Reflections -->
     <div class="section-number">07 — Reflections</div>
     <h2 class="section-title">What This Tells Us About Neural Computation</h2>
 
-    <p>The most intellectually interesting outcome of this experiment is not the compression ratio — it's what the three
+    <p>The most intellectually interesting outcome of this experiment is not the compression ratio but what the three
       ticket types reveal about how SIRENs are internally organized.</p>
 
-    <p>The existence of a winning ticket at 2.3% density implies that 97.7% of this network's parameters are, in some
-      sense, redundant <em>given the right initialization</em>. But this redundancy is not waste — it's the price of the
-      optimization landscape. The dense network's overparameterization creates a smooth loss surface that gradient
+    <p>The existence of a well-performing winning ticket at 1.2% density implies that 98.8% of this network's parameters
+      are, in some
+      sense, redundant <em>given the right initialization</em>. But this redundancy is not waste, it is just the price
+      you need to pay for simplifying
+      training dynamics and the optimization landscape. The dense network's overparameterization creates a smooth loss
+      surface that gradient
       descent can traverse; the sparse winning ticket, found only after training the dense network, cannot be discovered
       by directly training the sparse architecture from scratch. The dense network is a <em>scaffolding</em> for
       identifying the sparse solution.</p>
 
-    <p>This is a profound statement about what learning is doing at a fine-grained level. It's not just fitting
-      parameters to data — it's identifying, from a combinatorially large space of possible sparse structures, the
-      specific connectivity that allows learning to work. The Mona Lisa is not in any 2.3% of this network. It's in a
-      very specific 2.3% — the one that, when rewound to initialization, happens to sit in a favorable region of
+    <p>So in the fine-grained level, learning is not just fitting
+      parameters to data, but identifying, from a combinatorially large space of possible sparse structures, the
+      specific connectivity that allows learning to work. The Mona Lisa is not in any 1.2% of this network. It's in a
+      very specific 1.2%, the one that, when rewound to initialization, happens to sit in a favorable region of
       optimization geometry.</p>
 
     <blockquote>
@@ -1821,12 +2099,13 @@
     </blockquote>
 
     <p>The losing ticket tells the complementary story. High-magnitude weights are not "more important" in a general
-      sense — they're specifically important to SIREN's frequency decomposition. This is architecture-specific. In a
+      sense but they're specifically important to SIREN's frequency decomposition. This is architecture-specific. In a
       transformer, high-magnitude weights in attention heads might encode something entirely different. The "carrier
       wave" interpretation of SIREN's large weights is a hypothesis worth testing more rigorously, perhaps with direct
-      Fourier analysis of the activation statistics at each layer.</p>
+      Fourier analysis of the activation statistics at each layer, a level of depth to which, my dear friends, I am not
+      able to arrive.</p>
 
-    <p>Finally, the random ticket's logarithmic decay suggests that SIRENs have a degree of graceful degradation — you
+    <p>Finally, the random ticket's slow decay suggests that SIRENs have a degree of graceful degradation, you
       can remove up to 80-90% of weights randomly and still maintain reasonable quality. This is reassuring for
       robustness: SIREN representations are not brittle by default. They become brittle only when you specifically
       target their frequency-carrying architecture.</p>
@@ -1838,7 +2117,7 @@
       <h3>Citations</h3>
       <div class="ref-item">
         <span class="ref-num">[1]</span>
-        <span>Frankle, J. &amp; Carlin, M. (2019). <em>The Lottery Ticket Hypothesis: Finding Sparse, Trainable Neural
+        <span>Frankle, J. &amp; Carbin, M. (2019). <em>The Lottery Ticket Hypothesis: Finding Sparse, Trainable Neural
             Networks.</em> ICLR 2019 (Best Paper Award). arXiv:1803.03635.</span>
       </div>
       <div class="ref-item">
@@ -1848,7 +2127,7 @@
       </div>
       <div class="ref-item">
         <span class="ref-num">[3]</span>
-        <span>Frankle, J., Dziugaite, G.K., Roy, D.M., &amp; Carlin, M. (2020). <em>Linear Mode Connectivity and the
+        <span>Frankle, J., Dziugaite, G.K., Roy, D.M., &amp; Carbin, M. (2020). <em>Linear Mode Connectivity and the
             Lottery Ticket Hypothesis.</em> ICML 2020. Introduces late rewinding.</span>
       </div>
       <div class="ref-item">
@@ -1867,11 +2146,6 @@
             Ticket Hypothesis: Pruning is All You Need.</em> ICML 2020. Formal proof of LTH
           existence.</span>
       </div>
-      <div class="ref-item">
-        <span class="ref-num">[7]</span>
-        <span>De La Fuente, N., Pilligua, M., Vidal, D., Soutiff, A., Curreli, C., Cremers, D., &amp; Barsky, A. (2025).
-          <em>Prototype-Augmented Hypernetworks for Continual Learning.</em> CVPR Workshop. arXiv:2505.07450.</span>
-      </div>
     </div>
 
   </article>
@@ -1881,7 +2155,10 @@
     <p>© 2026 Neil De La Fuente. &nbsp;·&nbsp; Trained on a GTX 1650 Ti (CUDA 12.1) &nbsp;·&nbsp; Built with SIREN &amp;
       PyTorch
       &nbsp;·&nbsp;
-      <a href="https://github.com/Neilus03/losingtickets">Source on GitHub ↗</a>
+      <a href="https://github.com/Neilus03/losingtickets">Source on GitHub ↗</a> &nbsp;
+      <a href="https://www.linkedin.com/in/neil-de-la-fuente/">Contact</a> &nbsp;
+      <a href="https://scholar.google.com/citations?user=jhE9mWUAAAAJ&hl=en">Google Scholar</a>
+
     </p>
   </footer>
 

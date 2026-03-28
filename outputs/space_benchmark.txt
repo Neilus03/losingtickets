@@ -1,0 +1,19 @@
+Model Storage & Compression Benchmark
+------------------------------------------------------------
+Dense Baseline Disk Size: 781.01 KB
+
+Ticket Type: WINNER
+Iter 1. | Disk:  1555.5 KB | Weights:  80.00% | Theoretical Sparse:  1236.8 KB (0.6x compression)
+Iter 10 | Disk:  1555.5 KB | Weights:  10.74% | Theoretical Sparse:   166.0 KB (4.7x compression)
+Iter 18 | Disk:  1555.5 KB | Weights:   1.80% | Theoretical Sparse:    27.9 KB (27.8x compression)
+
+Ticket Type: RANDOM
+Iter 1. | Disk:  1555.5 KB | Weights:  80.00% | Theoretical Sparse:  1236.8 KB (0.6x compression)
+Iter 10 | Disk:  1555.5 KB | Weights:  10.74% | Theoretical Sparse:   166.0 KB (4.7x compression)
+Iter 18 | Disk:  1555.5 KB | Weights:   1.80% | Theoretical Sparse:    27.9 KB (27.8x compression)
+
+Ticket Type: LOSER
+Iter 1. | Disk:  1555.4 KB | Weights:  80.00% | Theoretical Sparse:  1236.8 KB (0.6x compression)
+Iter 10 | Disk:  1555.3 KB | Weights:  10.74% | Theoretical Sparse:   166.0 KB (4.7x compression)
+Iter 18 | Disk:  1555.3 KB | Weights:   1.81% | Theoretical Sparse:    27.9 KB (27.7x compression)
+
