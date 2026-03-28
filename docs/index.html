@@ -41,6 +41,7 @@
       --crimson: #e84b4b;
       --crimson-dim: rgba(232, 75, 75, 0.12);
       --teal: #4be8c8;
+      --cyan: #4be8f0;
       --teal-dim: rgba(75, 232, 200, 0.12);
       --blue: #6b9fff;
       --blue-dim: rgba(107, 159, 255, 0.12);
@@ -1900,7 +1901,7 @@
           <div class="legend-dot" style="background:var(--gold)"></div>Winning Ticket (IMP)
         </div>
         <div class="legend-item">
-          <div class="legend-dot" style="background:var(--blue)"></div>Random Ticket (Control)
+          <div class="legend-dot" style="background:var(--cyan)"></div>Random Ticket (Control)
         </div>
         <div class="legend-item">
           <div class="legend-dot" style="background:var(--crimson)"></div>Losing Ticket (Anti-IMP)
@@ -2433,22 +2434,22 @@
           {
             label: 'Winner',
             data: psnrData.winner.map((v, i) => ({ x: remaining[i], y: v })),
-            borderColor: '#00ffff', // Cyan matching the image
-            backgroundColor: 'rgba(0, 255, 255, 0.08)',
+            borderColor: '#ffcc00', // Gold matching the legend
+            backgroundColor: 'rgba(255, 204, 0, 0.08)',
             borderWidth: 3,
             pointRadius: 5,
-            pointBackgroundColor: '#00ffff',
+            pointBackgroundColor: '#ffcc00',
             tension: 0.1,
             fill: false
           },
           {
             label: 'Random',
             data: psnrData.random.map((v, i) => ({ x: remaining[i], y: v })),
-            borderColor: '#ffcc00', // Yellow matching the image
-            backgroundColor: 'rgba(255, 204, 0, 0.08)',
+            borderColor: '#00ffff', // Cyan matching the legend
+            backgroundColor: 'rgba(0, 255, 255, 0.08)',
             borderWidth: 3,
             pointRadius: 5,
-            pointBackgroundColor: '#ffcc00',
+            pointBackgroundColor: '#00ffff',
             tension: 0.1,
             fill: false
           },
