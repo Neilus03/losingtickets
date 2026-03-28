@@ -1,0 +1,14 @@
+PLAN.md
+DONE.md
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+# IDEs
+.vscode/
+.idea/
+# Training outputs
+checkpoints/
+logs/
+outputs/
+data/
