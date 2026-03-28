@@ -1453,68 +1453,6 @@
       color: var(--gold);
     }
 
-    /* ─── Social: Like Button & Comments ─────────────────── */
-    .like-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.6rem;
-      padding: 0.8rem 1.2rem;
-      border-radius: 50px;
-      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      margin-left: 1rem;
-      position: relative;
-    }
-
-    .like-btn .star-icon {
-      width: 24px;
-      height: 24px;
-      fill: none;
-      stroke: #0c0d11;
-      stroke-width: 2;
-      transition: all 0.3s ease;
-      filter: drop-shadow(0 0 0 rgba(12, 13, 17, 0));
-    }
-
-    .like-btn.is-liked .star-icon {
-      fill: #0c0d11;
-      transform: scale(1.2);
-    }
-
-    .like-btn:hover .star-icon {
-      transform: scale(1.1) rotate(15deg);
-    }
-
-    .like-btn:active {
-      transform: scale(0.9);
-    }
-
-    /* Confetti Tickets */
-    .confetti-ticket {
-      position: absolute;
-      width: 12px;
-      height: 8px;
-      background: #0c0d11;
-      border-radius: 1px;
-      pointer-events: none;
-      z-index: 2000;
-      opacity: 0;
-      clip-path: polygon(0% 0, 100% 0, 100% 35%, 90% 50%, 100% 65%, 100% 100%, 0 100%, 0 65%, 10% 50%, 0 35%);
-    }
-
-    @keyframes confettiFall {
-      0% {
-        transform: translate(0, 0) rotate(0deg) scale(1);
-        opacity: 1;
-      }
-      100% {
-        transform: translate(var(--dx), var(--dy)) rotate(var(--dr)) scale(0);
-        opacity: 0;
-      }
-    }
-
     .comments-section {
       max-width: var(--reading-w);
       margin: 4rem auto 8rem;
@@ -2358,12 +2296,6 @@
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
             </svg>
           </a>
-          <button id="like-btn" type="button" class="like-btn" aria-label="Like this ticket">
-            <svg class="star-icon" viewBox="0 0 24 24">
-              <path
-                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-            </svg>
-          </button>
         </div>
         <div class="ticket-stub">
           <div class="stub-text"> WINNING TICKET</div>
@@ -2425,10 +2357,10 @@
   <section class="comments-section">
     <div class="divider">Comments</div>
     <br><br>
-    <script src="https://giscus.app/client.js" data-repo="Neilus03/losingtickets" data-repo-id="[REPO_ID]"
-      data-category="General" data-category-id="[CATEGORY_ID]" data-mapping="pathname" data-strict="0"
-      data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en"
-      crossorigin="anonymous" async>
+    <script src="https://giscus.app/client.js" data-repo="neilus03/losingtickets" data-repo-id="R_kgDORxTJBw"
+      data-category="General" data-category-id="DIC_kwDORxTJB84C5dwB" data-mapping="pathname" data-strict="0"
+      data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="preferred_color_scheme"
+      data-lang="en" crossorigin="anonymous" async>
       </script>
   </section>
 
@@ -2635,56 +2567,8 @@
     });
   </script>
   <script>
-    // ─── Like Button & Gold Ticket Confetti ──────────────────
-    const likeBtn = document.getElementById('like-btn');
-    const LIKED_KEY = 'losingtickets_liked';
-
-    // Check localStorage
-    if (localStorage.getItem(LIKED_KEY) === 'true') {
-      likeBtn.classList.add('is-liked');
-    }
-
-    likeBtn.addEventListener('click', () => {
-      const isLiked = likeBtn.classList.toggle('is-liked');
-      localStorage.setItem(LIKED_KEY, isLiked);
-
-      if (isLiked) {
-        createConfetti(likeBtn);
-      }
-    });
-
-    function createConfetti(target) {
-      const rect = target.getBoundingClientRect();
-      const count = 12;
-
-      for (let i = 0; i < count; i++) {
-        const confetti = document.createElement('div');
-        confetti.className = 'confetti-ticket';
-
-        // Particles direction
-        const angle = (Math.PI * 2 * i) / count;
-        const velocity = 50 + Math.random() * 100;
-        const dx = Math.cos(angle) * velocity;
-        const dy = Math.sin(angle) * velocity;
-        const dr = Math.random() * 360 + 360; // Rotation
-
-        confetti.style.setProperty('--dx', `${dx}px`);
-        confetti.style.setProperty('--dy', `${dy}px`);
-        confetti.style.setProperty('--dr', `${dr}deg`);
-
-        confetti.style.left = `${rect.left + rect.width / 2}px`;
-        confetti.style.top = `${rect.top + rect.height / 2}px`;
-
-        confetti.style.animation = `confettiFall ${0.6 + Math.random() * 0.4}s cubic-bezier(0, .9, .57, 1) forwards`;
-
-        document.body.appendChild(confetti);
-
-        // Cleanup
-        setTimeout(() => {
-          confetti.remove();
-        }, 1000);
-      }
-    }
+    // ─── Golden Ticket Animations ──────────────────────────
+    // (Previous scripts remain)
   </script>
 </body>
 
