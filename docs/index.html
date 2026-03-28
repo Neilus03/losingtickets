@@ -5,7 +5,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Losing Tickets in Neural Representations — Neil De La Fuente</title>
-  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="shortcut icon" href="favicon.svg" type="image/svg+xml">
 
 
   <!-- KaTeX for math -->
@@ -103,6 +104,15 @@
       text-transform: uppercase;
       color: var(--gold);
       text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .nav-logo {
+      height: 1.2rem;
+      width: auto;
+      filter: drop-shadow(0 0 8px rgba(232, 184, 75, 0.3));
     }
 
     .nav-links {
@@ -1478,8 +1488,10 @@
 
   <!-- ─── Navigation ─────────────────────────────────── -->
   <nav class="site-nav">
-    <a class="nav-brand" href="javascript:void(0)" onclick="window.scrollTo({top:0,behavior:'smooth'})">Losing
-      Tickets</a>
+    <a class="nav-brand" href="javascript:void(0)" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+      <img src="favicon.svg" alt="Ticket Logo" class="nav-logo">
+      <span>Losing Tickets</span>
+    </a>
     <div class="nav-links">
       <a href="#lab">The Lab</a>
       <a href="#background">Background</a>

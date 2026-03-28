@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8e08e" />
+      <stop offset="50%" style="stop-color:#e8b84b" />
+      <stop offset="100%" style="stop-color:#b8860b" />
+    </linearGradient>
+  </defs>
+  <!-- Ticket body with side notches -->
+  <path d="M 4,6 L 28,6 A 2,2 0 0 1 30,8 L 30,13 A 3,3 0 0 0 30,19 L 30,24 A 2,2 0 0 1 28,26 L 4,26 A 2,2 0 0 1 2,24 L 2,19 A 3,3 0 0 0 2,13 L 2,8 A 2,2 0 0 1 4,6 Z" fill="url(#gold)" />
+  <!-- Perforation line -->
+  <line x1="10" y1="8" x2="10" y2="24" stroke="rgba(0,0,0,0.2)" stroke-width="1.5" stroke-dasharray="1,1" />
+</svg>
