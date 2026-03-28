@@ -1546,16 +1546,14 @@
   <article class="article">
 
     <div class="abstract">
-      <div class="abstract-label">Abstract</div>
-      <p>Implicit Neural Representations (INRs) are overparameterized by design, a feature, not a bug. But can we
-        surgically remove most of their parameters and still preserve the signal they've memorized? This work applies
-        the Lottery Ticket Hypothesis to Sinusoidal Representation Networks fitted to a single image, contrasting three
-        pruning strategies
-        across 21 iterative rounds down to 1.2% of original network weight. We find that SIREN contains a remarkable
+      <div class="abstract-label">TL;DR</div>
+      <p>In this blogpost, I apply the Lottery Ticket Hypothesis to Sinusoidal Representation Networks fitted to a
+        single image. We find that SIREN contains a remarkable
         winning ticket — a 1.2% sub-network maintaining 29.2&nbsp;dB PSNR, while the losing ticket collapses
-        catastrophically to noise in just <em>two</em> pruning rounds. The mechanism is not bandwidth limitation but
-        <strong>frequency carrier destruction</strong>: SIREN's high-magnitude weights act as the primary oscillators of
-        its Fourier decomposition, and removing them is equivalent to silencing all radio stations simultaneously.
+        catastrophically to noise in just <em>two</em> pruning rounds. I discuss the
+        <strong>frequency carrier destruction</strong> phenomenon and how SIREN's high-magnitude weights act as the
+        primary oscillators of
+        its Fourier decomposition.
       </p>
     </div>
 
