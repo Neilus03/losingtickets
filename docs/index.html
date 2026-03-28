@@ -1303,6 +1303,234 @@
         min-height: 100px;
       }
     }
+
+    /* ─── Thank You / Feedback Section ─────────────────────── */
+    .thank-you-section {
+      max-width: 850px;
+      margin: 6rem auto 8rem;
+      padding: 0 2rem;
+      text-align: center;
+      animation: fadeUp 1s 0.2s ease both;
+    }
+
+    .thank-you-box {
+      position: relative;
+      display: flex;
+      flex-direction: row;
+      min-height: 180px;
+      background: linear-gradient(135deg, #fff2ac 0%, #e8b84b 40%, #b38a2b 70%, #e8b84b 100%);
+      background-size: 200% auto;
+      border-radius: 12px;
+      padding: 0;
+      overflow: hidden;
+      clip-path: polygon(0% 0, 100% 0, 100% 35%, 98% 40%, 98% 60%, 100% 65%, 100% 100%, 0 100%, 0 65%, 2% 60%, 2% 40%, 0 35%);
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
+      cursor: default;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+      animation: goldShimmer 5s linear infinite;
+    }
+
+    @keyframes goldShimmer {
+      0% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    .thank-you-box:hover {
+      transform: scale(1.03) rotate(-1deg);
+      box-shadow: 0 30px 60px rgba(232, 184, 75, 0.25), 0 0 40px rgba(232, 184, 75, 0.15);
+    }
+
+    .ticket-main {
+      flex: 1;
+      padding: 1rem 3rem;
+      text-align: left;
+      border-right: 2px dashed rgba(12, 13, 17, 0.15);
+      border-bottom: none;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .ticket-stub {
+      width: 140px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(12, 13, 17, 0.05);
+    }
+
+    .stub-text {
+      writing-mode: vertical-rl;
+      text-transform: uppercase;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 0.8rem;
+      letter-spacing: 0.4em;
+      color: rgba(12, 13, 17, 0.6);
+      transform: rotate(180deg);
+      white-space: nowrap;
+      margin-bottom: 0;
+    }
+
+    .barcode {
+      margin-top: auto;
+      display: flex;
+      gap: 2px;
+      height: 35px;
+      opacity: 0.7;
+    }
+
+    .bar {
+      background: #0c0d11;
+      height: 100%;
+    }
+
+    .bar.sm {
+      width: 1px;
+    }
+
+    .bar.md {
+      width: 2px;
+    }
+
+    .bar.lg {
+      width: 4px;
+    }
+
+    .thank-you-box h2 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.6rem;
+      color: #0c0d11;
+      margin-bottom: 0.2rem;
+      text-transform: uppercase;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      margin-top: 1.2rem;
+    }
+
+    .thank-you-box p {
+      font-size: 1rem;
+      color: rgba(12, 13, 17, 0.75);
+      margin-bottom: 1.5rem;
+      font-family: 'Newsreader', serif;
+      line-height: 1.4;
+      font-style: italic;
+    }
+
+    .feedback-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 1rem 2.8rem;
+      background: #0c0d11;
+      color: var(--gold);
+      text-decoration: none;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      border-radius: 4px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .feedback-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+      color: var(--gold);
+    }
+
+    /* ─── Social: Like Button & Comments ─────────────────── */
+    .like-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.8rem 1.2rem;
+      border-radius: 50px;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      margin-left: 1rem;
+      position: relative;
+    }
+
+    .like-btn .star-icon {
+      width: 24px;
+      height: 24px;
+      fill: none;
+      stroke: #0c0d11;
+      stroke-width: 2;
+      transition: all 0.3s ease;
+      filter: drop-shadow(0 0 0 rgba(12, 13, 17, 0));
+    }
+
+    .like-btn.is-liked .star-icon {
+      fill: #0c0d11;
+      transform: scale(1.2);
+    }
+
+    .like-btn:hover .star-icon {
+      transform: scale(1.1) rotate(15deg);
+    }
+
+    .like-btn:active {
+      transform: scale(0.9);
+    }
+
+    /* Confetti Tickets */
+    .confetti-ticket {
+      position: absolute;
+      width: 12px;
+      height: 8px;
+      background: #0c0d11;
+      border-radius: 1px;
+      pointer-events: none;
+      z-index: 2000;
+      opacity: 0;
+      clip-path: polygon(0% 0, 100% 0, 100% 35%, 90% 50%, 100% 65%, 100% 100%, 0 100%, 0 65%, 10% 50%, 0 35%);
+    }
+
+    @keyframes confettiFall {
+      0% {
+        transform: translate(0, 0) rotate(0deg) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--dx), var(--dy)) rotate(var(--dr)) scale(0);
+        opacity: 0;
+      }
+    }
+
+    .comments-section {
+      max-width: var(--reading-w);
+      margin: 4rem auto 8rem;
+      padding: 0 2rem;
+    }
+
+    .ticket-number {
+      position: absolute;
+      top: 1rem;
+      left: 3rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: rgba(12, 13, 17, 0.4);
+      font-weight: 700;
+      letter-spacing: 0.1em;
+    }
   </style>
 </head>
 
@@ -1397,7 +1625,7 @@
     <div class="section-number">01 — Introduction</div>
     <h2 class="section-title">Why I Went Looking for Winning and Losing Tickets</h2>
 
-    <p class="drop-cap">During my undergrad at UAB, I took the Advanced Machine Learning course taught by Andrey
+    <p class="drop-cap">During my undergrad years at UAB, I took the Advanced Machine Learning course taught by Andrey
       Barsky, one of the best teachers I've had the luck of learning from. The class was demanding in the
       best way: every few weeks he would present a new idea that quietly rearranged how I thought about deep learning.
       The Neural Tangent Kernel. Low-Rank Adaptation. Continual learning. Model merging. And the one of interest for
@@ -1752,7 +1980,7 @@
       roughly 19.1&nbsp;KB versus the original ~781&nbsp;KB dense state dict.</p>
 
     <h3 class="sub-title">The Random Ticket: Logarithmic Decay</h3>
-    <p>The random ticket behaves exactly as you'd expect from information theory: smooth, monotonic decay. It stays
+    <p>The random ticket behaves exactly as you'd expect from information theory: smooth, logarithmic decay. It stays
       surprisingly competitive at moderate sparsity (staying above 33&nbsp;dB until around 10% remaining), then falls
       off
       rapidly below 5%, eventually crashing to 12.9&nbsp;dB at the final 1.2% mark. This is the baseline against which
@@ -2073,8 +2301,8 @@
     <div class="section-number">07 — Reflections</div>
     <h2 class="section-title">What This Tells Us About Neural Computation</h2>
 
-    <p>The most intellectually interesting outcome of this experiment is not the compression ratio but what the three
-      ticket types reveal about how SIRENs are internally organized.</p>
+    <p>The most interesting outcome of this experiment is not the compression ratio but how the three
+      ticket types help us understand how SIRENs are internally organized.</p>
 
     <p>The existence of a well-performing winning ticket at 1.2% density implies that 98.8% of this network's parameters
       are, in some
@@ -2088,7 +2316,8 @@
 
     <p>So in the fine-grained level, learning is not just fitting
       parameters to data, but identifying, from a combinatorially large space of possible sparse structures, the
-      specific connectivity that allows learning to work. The Mona Lisa is not in any 1.2% of this network. It's in a
+      specific connectivity that allows for the task to be solved. The Mona Lisa is not in any 1.2% of this network.
+      It's in a
       very specific 1.2%, the one that, when rewound to initialization, happens to sit in a favorable region of
       optimization geometry.</p>
 
@@ -2098,17 +2327,61 @@
       <cite>— paraphrasing Frankle's own reflections on the hypothesis</cite>
     </blockquote>
 
-    <p>The losing ticket tells the complementary story. High-magnitude weights are not "more important" in a general
-      sense but they're specifically important to SIREN's frequency decomposition. This is architecture-specific. In a
+    <p>The losing ticket tells shows the other side of the coin. High-magnitude weights are not "more important" in a
+      general
+      sense but they're specifically important to SIREN's frequency decomposition. This is architecture-specific though.
+      In a
       transformer, high-magnitude weights in attention heads might encode something entirely different. The "carrier
       wave" interpretation of SIREN's large weights is a hypothesis worth testing more rigorously, perhaps with direct
       Fourier analysis of the activation statistics at each layer, a level of depth to which, my dear friends, I am not
-      able to arrive.</p>
+      able to arrive (yet).</p>
 
-    <p>Finally, the random ticket's slow decay suggests that SIRENs have a degree of graceful degradation, you
-      can remove up to 80-90% of weights randomly and still maintain reasonable quality. This is reassuring for
-      robustness: SIREN representations are not brittle by default. They become brittle only when you specifically
+    <p>Finally, the random ticket's slow decay suggests that SIRENs have a surprising degree of graceful degradation,
+      you
+      can remove up to 80-90% of weights randomly and still maintain reasonable quality.
+      SIREN representations are quite robust by default. They become brittle only when you specifically
       target their frequency-carrying architecture.</p>
+
+
+
+    <!-- ─── Thank You / Feedback ────────────────────────── -->
+    <section class="thank-you-section">
+      <div class="thank-you-box">
+        <div class="ticket-main">
+          <div class="ticket-number">LT-2026-No.21</div>
+          <h2>Thank you for reading</h2>
+          <p>Your feedback is my winning ticket. Have you found your own sub-networks yet?</p>
+          <a href="mailto:nedela@ethz.ch" class="feedback-cta">
+            FEEDBACK
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </a>
+          <button id="like-btn" type="button" class="like-btn" aria-label="Like this ticket">
+            <svg class="star-icon" viewBox="0 0 24 24">
+              <path
+                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+            </svg>
+          </button>
+        </div>
+        <div class="ticket-stub">
+          <div class="stub-text"> WINNING TICKET</div>
+          <div class="barcode">
+            <div class="bar lg"></div>
+            <div class="bar sm"></div>
+            <div class="bar md"></div>
+            <div class="bar sm"></div>
+            <div class="bar lg"></div>
+            <div class="bar md"></div>
+            <div class="bar sm"></div>
+            <div class="bar md"></div>
+            <div class="bar sm"></div>
+            <div class="bar lg"></div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- References -->
     <div class="divider">References</div>
@@ -2118,37 +2391,46 @@
       <div class="ref-item">
         <span class="ref-num">[1]</span>
         <span>Frankle, J. &amp; Carbin, M. (2019). <em>The Lottery Ticket Hypothesis: Finding Sparse, Trainable Neural
-            Networks.</em> ICLR 2019 (Best Paper Award). arXiv:1803.03635.</span>
+            Networks.</em> ICLR 2019 </span>
       </div>
       <div class="ref-item">
         <span class="ref-num">[2]</span>
         <span>Sitzmann, V., Martel, J.N.P., Bergman, A.W., Lindell, D.B., &amp; Wetzstein, G. (2020). <em>Implicit
-            Neural Representations with Periodic Activation Functions.</em> NeurIPS 2020. arXiv:2006.09661.</span>
+            Neural Representations with Periodic Activation Functions.</em> NeurIPS 2020. </span>
       </div>
       <div class="ref-item">
         <span class="ref-num">[3]</span>
         <span>Frankle, J., Dziugaite, G.K., Roy, D.M., &amp; Carbin, M. (2020). <em>Linear Mode Connectivity and the
-            Lottery Ticket Hypothesis.</em> ICML 2020. Introduces late rewinding.</span>
+            Lottery Ticket Hypothesis.</em> ICML 2020. </span>
       </div>
       <div class="ref-item">
         <span class="ref-num">[4]</span>
-        <span>Rahaman, N. et al. (2019). <em>On the Spectral Bias of Neural Networks.</em> ICML 2019. Formalizes the
-          low-frequency learning priority of ReLU networks.</span>
+        <span>Rahaman, N. et al. (2019). <em>On the Spectral Bias of Neural Networks.</em> ICML 2019.</span>
       </div>
       <div class="ref-item">
         <span class="ref-num">[5]</span>
-        <span>Morcos, A.S., Yu, H., Blunt, M. &amp; Tian, Y. (2019). <em>One Ticket to Win Them All: Generalizing
+        <span>Morcos, A.S., Yu, H., Paganini, M. &amp; Tian, Y. (2019). <em>One Ticket to Win Them All: Generalizing
             Lottery Ticket Initializations across Datasets and Optimizers.</em> NeurIPS 2019.</span>
       </div>
       <div class="ref-item">
         <span class="ref-num">[6]</span>
         <span>Malach, E., Yehudai, G., Shalev-Shwartz, S. &amp; Shamir, O. (2020). <em>Proving the Lottery
-            Ticket Hypothesis: Pruning is All You Need.</em> ICML 2020. Formal proof of LTH
-          existence.</span>
+            Ticket Hypothesis: Pruning is All You Need.</em> ICML 2020. </span>
       </div>
     </div>
 
   </article>
+
+  <!-- ─── Comments Section ───────────────────────────── -->
+  <section class="comments-section">
+    <div class="divider">Comments</div>
+    <br><br>
+    <script src="https://giscus.app/client.js" data-repo="Neilus03/losingtickets" data-repo-id="[REPO_ID]"
+      data-category="General" data-category-id="[CATEGORY_ID]" data-mapping="pathname" data-strict="0"
+      data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark" data-lang="en"
+      crossorigin="anonymous" async>
+      </script>
+  </section>
 
   <!-- ─── Footer ──────────────────────────────────────── -->
   <footer>
@@ -2351,6 +2633,58 @@
       // Small delay to ensure everything else is loaded
       setTimeout(spawnTickets, 400);
     });
+  </script>
+  <script>
+    // ─── Like Button & Gold Ticket Confetti ──────────────────
+    const likeBtn = document.getElementById('like-btn');
+    const LIKED_KEY = 'losingtickets_liked';
+
+    // Check localStorage
+    if (localStorage.getItem(LIKED_KEY) === 'true') {
+      likeBtn.classList.add('is-liked');
+    }
+
+    likeBtn.addEventListener('click', () => {
+      const isLiked = likeBtn.classList.toggle('is-liked');
+      localStorage.setItem(LIKED_KEY, isLiked);
+
+      if (isLiked) {
+        createConfetti(likeBtn);
+      }
+    });
+
+    function createConfetti(target) {
+      const rect = target.getBoundingClientRect();
+      const count = 12;
+
+      for (let i = 0; i < count; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti-ticket';
+
+        // Particles direction
+        const angle = (Math.PI * 2 * i) / count;
+        const velocity = 50 + Math.random() * 100;
+        const dx = Math.cos(angle) * velocity;
+        const dy = Math.sin(angle) * velocity;
+        const dr = Math.random() * 360 + 360; // Rotation
+
+        confetti.style.setProperty('--dx', `${dx}px`);
+        confetti.style.setProperty('--dy', `${dy}px`);
+        confetti.style.setProperty('--dr', `${dr}deg`);
+
+        confetti.style.left = `${rect.left + rect.width / 2}px`;
+        confetti.style.top = `${rect.top + rect.height / 2}px`;
+
+        confetti.style.animation = `confettiFall ${0.6 + Math.random() * 0.4}s cubic-bezier(0, .9, .57, 1) forwards`;
+
+        document.body.appendChild(confetti);
+
+        // Cleanup
+        setTimeout(() => {
+          confetti.remove();
+        }, 1000);
+      }
+    }
   </script>
 </body>
 
