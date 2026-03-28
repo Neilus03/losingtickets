@@ -2271,23 +2271,25 @@
       <div class="callout-label">Open Question</div>
       <p>An intriguing follow-up: does the winning ticket found here <em>transfer across images</em>? Morcos et al.
         (2019) showed that lottery tickets found on CIFAR-10 sometimes transfer to CIFAR-100. For INRs, transferability
-        would mean something even stranger — that the same sparse connectivity structure can be reused to represent
-        entirely different natural signals. This seems improbable (each image has different frequency content), but the
-        connectivity structure of the winning ticket might reveal universal properties of how SIRENs decompose 2D
+        would mean something even stranger: that the same sparse connectivity structure can be reused to represent
+        entirely different natural signals. This seems not very likely (each image has different frequency content), but
+        the connectivity structure of the winning ticket might reveal universal properties of how SIRENs decompose 2D
         signals.</p>
     </div>
 
     <h3 class="sub-title">What the Winning Ticket Is Really Preserving</h3>
-    <p>Looking at the winning ticket reconstructions in the lab above, a pattern emerges. At 5% remaining weights, the
-      reconstruction loses fine detail — the intricate lace of the veil, the subtle texture of the background rocks —
-      but preserves the macro-structure: the silhouette, the dominant color gradients, the facial geometry. This is not
-      accidental.</p>
-
-    <p>The small-magnitude weights that the winning ticket preserves are precisely those responsible for the
-      low-frequency backbone of the signal. They're small in magnitude because the SIREN's initialization scheme
-      deliberately scales hidden-layer weights by $1/\omega_0$ — small at initialization, they correspond to
-      low-frequency components that are easy to learn and cheap to represent. The winning ticket is, in essence, the
-      Fourier low-pass filter of the full network, and IMP happens to be the procedure that isolates it.</p>
+    <h3 class="sub-title">What the Winning Ticket Is Really Preserving</h3>
+    <p>Looking at the winning ticket reconstruction at 1.2% remaining weights, the result is blurry but
+      unmistakably the Mona Lisa: the silhouette, skin tones, and background color regions all survive across
+      roughly 2,386 parameters. This is not accidental. Recall from the frequency-carrier analysis above: in a
+      SIREN, weight magnitude directly governs the amplitude of a neuron's sinusoidal oscillation, making
+      high-magnitude weights the primary oscillators of the learned representation. IMP preserves exactly these,
+      discarding the smallest weights. The blurriness at this extreme sparsity is a <em>capacity</em> effect: with
+      so few oscillators remaining, the network can only compose the frequency modes that dominate the image's
+      energy. Those happen to be the macro-structure, broad color regions and facial geometry, while fine textures
+      like the veil require higher-order interference across many more parameters than survive. The winning ticket
+      is the network's <strong>principal component decomposition</strong>: IMP isolates the sparse subset of
+      high-magnitude weights whose joint oscillations account for the majority of the signal's variance.</p>
 
     <!-- 6. Compression Analysis -->
     <div class="section-number">06 — Compression Analysis</div>
