@@ -532,6 +532,155 @@
       padding: 1rem 1rem;
     }
 
+    /* FFT Overlay & Toggle */
+    .card-media {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      aspect-ratio: 1;
+      background: #000;
+    }
+
+    .fft-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      pointer-events: none;
+      mix-blend-mode: screen;
+    }
+
+    /* Colorize based on ticket type */
+    .winner .fft-overlay {
+      filter: brightness(1.5) contrast(1.2) sepia(1) saturate(3) hue-rotate(-10deg);
+    }
+    .random .fft-overlay {
+      filter: brightness(1.5) contrast(1.2) sepia(1) saturate(5) hue-rotate(140deg);
+    }
+    .loser .fft-overlay {
+      filter: brightness(1.5) contrast(1.2) sepia(1) saturate(5) hue-rotate(300deg);
+    }
+
+    .fft-active .fft-overlay {
+      opacity: 0.75;
+    }
+
+    .lab-controls {
+      position: absolute;
+      top: 0.6rem;
+      right: 0.6rem;
+      z-index: 50;
+    }
+
+    .toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      cursor: pointer;
+      padding: 0.3rem 0.6rem;
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    .toggle-wrap:hover {
+      border-color: rgba(232, 184, 75, 0.4);
+      transform: scale(1.02);
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 34px;
+      height: 20px;
+      background: var(--bg-2);
+      border-radius: 10px;
+      transition: background 0.3s;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    /* ─── Metric Toggle ─── */
+    .metric-toggle {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .metric-btn {
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .metric-btn:hover {
+      border-color: var(--gold);
+      color: var(--heading);
+    }
+
+    .metric-btn.active {
+      background: var(--gold-dim);
+      color: var(--gold);
+      border-color: var(--gold);
+    }
+
+    .toggle-wrap input {
+      display: none;
+    }
+
+    .toggle-wrap input:checked + .toggle-switch {
+      background: var(--gold);
+      border-color: var(--gold);
+    }
+
+    .toggle-thumb {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 14px;
+      height: 14px;
+      background: var(--text-dim);
+      border-radius: 50%;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
+    }
+
+    .toggle-wrap input:checked + .toggle-switch .toggle-thumb {
+      transform: translateX(14px);
+      background: var(--bg);
+      box-shadow: 0 0 6px rgba(0,0,0,0.4);
+    }
+
+    .toggle-label {
+      display: flex;
+      flex-direction: column;
+      line-height: 1;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.52rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      transition: color 0.3s;
+    }
+
+    .toggle-wrap input:checked ~ .toggle-label {
+      color: var(--gold);
+    }
+
     .lab-wrap {
       background: var(--bg-2);
       border: 1px solid var(--border);
@@ -1757,7 +1906,7 @@
     <div class="math-block">
       <div>$$\Phi(\mathbf{x}) = \mathbf{W}_n \left( \phi_{n-1} \circ \phi_{n-2} \circ \cdots \circ \phi_0
         \right)(\mathbf{x}) + \mathbf{b}_n$$</div>
-      <div style="margin-top:0.75rem">$$\phi_i(\mathbf{x}_i) = \sin\!\left(\omega_0 \cdot \mathbf{W}_i \mathbf{x}_i +
+      <div class="math-spacing">$$\phi_i(\mathbf{x}_i) = \sin\!\left(\omega_0 \cdot \mathbf{W}_i \mathbf{x}_i +
         \mathbf{b}_i\right)$$</div>
       <div class="math-caption">SIREN forward pass: each layer applies an affine transform scaled by $\omega_0$ and
         wrapped in sine. The first layer uses $\omega_0 = 30$ to set the initial frequency bandwidth; subsequent layers
@@ -1817,6 +1966,16 @@
   <!-- ─── Interactive Lab ──────────────────────────────── -->
   <section class="lab-section" id="lab">
     <div class="lab-wrap">
+      <div class="lab-controls">
+        <label class="toggle-wrap">
+          <input type="checkbox" id="fftToggle" onchange="updateImages()">
+          <span class="toggle-switch">
+            <span class="toggle-thumb"></span>
+          </span>
+          <span class="toggle-label"><span>Spectral</span><span>Overlay</span></span>
+        </label>
+      </div>
+
       <div class="lab-header">
         <div class="kicker">Interactive Experiment</div>
         <p>Drag the slider to advance through 21 pruning iterations. Watch the three tickets diverge.</p>
@@ -1845,29 +2004,38 @@
         <input type="range" id="slider" min="0" max="20" value="0" oninput="updateImages()" />
       </div>
 
-      <div class="ticket-grid">
+      <div class="ticket-grid" id="ticketGrid">
         <div class="ticket-card winner">
           <div class="card-header">
             <span class="card-type">🏆 Winning Ticket</span>
-            <span class="card-psnr" id="winnerPsnrCard">—</span>
+            <span class="card-psnr" id="winnerPsnrCard">47.3 dB</span>
           </div>
-          <img id="winner" src="" alt="Winner reconstruction" loading="lazy" />
+          <div class="card-media">
+            <img id="winner" src="winner/iter_01_remaining_100.0pct.png" alt="Winner reconstruction" loading="lazy">
+            <img id="winnerFft" class="fft-overlay" src="winner/fft_iter_01.png" alt="Winner FFT" loading="lazy">
+          </div>
           <div class="card-footer">Lowest-magnitude pruning (IMP)</div>
         </div>
         <div class="ticket-card random">
           <div class="card-header">
             <span class="card-type">🎲 Random Control</span>
-            <span class="card-psnr" id="randomPsnrCard">—</span>
+            <span class="card-psnr" id="randomPsnrCard">47.5 dB</span>
           </div>
-          <img id="random" src="" alt="Random reconstruction" loading="lazy" />
+          <div class="card-media">
+            <img id="random" src="random/iter_01_remaining_100.0pct.png" alt="Random reconstruction" loading="lazy">
+            <img id="randomFft" class="fft-overlay" src="random/fft_iter_01.png" alt="Random FFT" loading="lazy">
+          </div>
           <div class="card-footer">Uniform random pruning</div>
         </div>
         <div class="ticket-card loser">
           <div class="card-header">
             <span class="card-type">📉 Losing Ticket</span>
-            <span class="card-psnr" id="loserPsnrCard">—</span>
+            <span class="card-psnr" id="loserPsnrCard">47.6 dB</span>
           </div>
-          <img id="loser" src="" alt="Loser reconstruction" loading="lazy" />
+          <div class="card-media">
+            <img id="loser" src="loser/iter_01_remaining_100.0pct.png" alt="Loser reconstruction" loading="lazy">
+            <img id="loserFft" class="fft-overlay" src="loser/fft_iter_01.png" alt="Loser FFT" loading="lazy">
+          </div>
           <div class="card-footer">Highest-magnitude pruning</div>
         </div>
       </div>
@@ -1943,7 +2111,7 @@
 
     <div class="math-block">
       <div>$$\text{Remaining}(k) = (1 - p)^k \qquad p = 0.20, \quad k \in \{1,\ldots,21\}$$</div>
-      <div style="margin-top:0.5rem; font-size:0.88rem; color: #7a8099;">Total iters: $k = \lceil \log(0.01) /
+      <div class="math-caption">Total iters: $k = \lceil \log(0.01) /
         \log(0.80) \rceil = 21$, reaching ${\approx}1\%$ remaining.</div>
     </div>
 
@@ -1975,6 +2143,10 @@
   <!-- ─── PSNR Chart ──────────────────────────────────── -->
   <div class="chart-section">
     <div class="chart-wrap">
+      <div class="metric-toggle">
+        <button type="button" class="metric-btn active" onclick="updateChartMetric('psnr', this)">PSNR (dB)</button>
+        <button type="button" class="metric-btn" onclick="updateChartMetric('hfe', this)">HFE Retention (%)</button>
+      </div>
       <div class="chart-canvas-wrap">
         <canvas id="psnrChart"></canvas>
       </div>
@@ -1989,7 +2161,7 @@
           <div class="legend-dot crimson"></div>Losing Ticket (Anti-IMP)
         </div>
       </div>
-      <div class="fig-caption"><strong>Figure 1.</strong> PSNR (dB) vs. remaining weight fraction. X-axis is logarithmic
+      <div class="fig-caption" id="fig1Caption"><strong>Figure 1.</strong> PSNR (dB) vs. remaining weight fraction. X-axis is logarithmic
         (left = dense, right = sparse). Note the winner's slowed decay versus the loser's step-function
         collapse after just one pruning round.</div>
     </div>
@@ -2029,10 +2201,10 @@
       pruning), it drops to 29.3&nbsp;dB. By 64% remaining, it's at 11.5&nbsp;dB, the PSNR of a blank gray screen,
       where it flatlines for all subsequent iterations.</p>
 
-    <p>This is not gradual. It is a step function. The removal of just the top 20% highest-magnitude weights causes the
-      network to emit noise. It never recovers from this state, despite 20,000 subsequent training epochs. This is the
-      <strong>frequency collapse</strong>: the entire signal-encoding capacity of the SIREN is destroyed in a single
-      pruning round.
+    <p>This is not gradual. It is a step function. The removal of just the top 36% highest-magnitude weights causes the
+      network to emit noise. It never recovers from this state, despite 19,000 subsequent training epochs. This is the
+      <strong>frequency collapse</strong>: the entire signal-encoding capacity of the SIREN is destroyed in a couple
+      of pruning rounds.
     </p>
 
     <div class="data-table-wrap">
@@ -2278,7 +2450,6 @@
     </div>
 
     <h3 class="sub-title">What the Winning Ticket Is Really Preserving</h3>
-    <h3 class="sub-title">What the Winning Ticket Is Really Preserving</h3>
     <p>Looking at the winning ticket reconstruction at 1.2% remaining weights, the result is blurry but
       we can still depict the Mona Lisa: the silhouette, skin tones, and background color regions all survive across
       roughly 2,386 parameters. Recall from the frequency-carrier analysis above, that in a SIREN, weight magnitude
@@ -2482,7 +2653,10 @@
     const imageData = {
       winner: ["winner/iter_01_remaining_100.0pct.png", "winner/iter_02_remaining_80.0pct.png", "winner/iter_03_remaining_64.0pct.png", "winner/iter_04_remaining_51.2pct.png", "winner/iter_05_remaining_41.0pct.png", "winner/iter_06_remaining_32.8pct.png", "winner/iter_07_remaining_26.2pct.png", "winner/iter_08_remaining_21.0pct.png", "winner/iter_09_remaining_16.8pct.png", "winner/iter_10_remaining_13.4pct.png", "winner/iter_11_remaining_10.7pct.png", "winner/iter_12_remaining_8.6pct.png", "winner/iter_13_remaining_6.9pct.png", "winner/iter_14_remaining_5.5pct.png", "winner/iter_15_remaining_4.4pct.png", "winner/iter_16_remaining_3.5pct.png", "winner/iter_17_remaining_2.8pct.png", "winner/iter_18_remaining_2.3pct.png", "winner/iter_19_remaining_1.8pct.png", "winner/iter_20_remaining_1.4pct.png", "winner/iter_21_remaining_1.2pct.png"],
       random: ["random/iter_01_remaining_100.0pct.png", "random/iter_02_remaining_80.0pct.png", "random/iter_03_remaining_64.0pct.png", "random/iter_04_remaining_51.2pct.png", "random/iter_05_remaining_41.0pct.png", "random/iter_06_remaining_32.8pct.png", "random/iter_07_remaining_26.2pct.png", "random/iter_08_remaining_21.0pct.png", "random/iter_09_remaining_16.8pct.png", "random/iter_10_remaining_13.4pct.png", "random/iter_11_remaining_10.7pct.png", "random/iter_12_remaining_8.6pct.png", "random/iter_13_remaining_6.9pct.png", "random/iter_14_remaining_5.5pct.png", "random/iter_15_remaining_4.4pct.png", "random/iter_16_remaining_3.5pct.png", "random/iter_17_remaining_2.8pct.png", "random/iter_18_remaining_2.3pct.png", "random/iter_19_remaining_1.8pct.png", "random/iter_20_remaining_1.4pct.png", "random/iter_21_remaining_1.2pct.png"],
-      loser: ["loser/iter_01_remaining_100.0pct.png", "loser/iter_02_remaining_80.0pct.png", "loser/iter_03_remaining_64.0pct.png", "loser/iter_04_remaining_51.2pct.png", "loser/iter_05_remaining_41.0pct.png", "loser/iter_06_remaining_32.8pct.png", "loser/iter_07_remaining_26.2pct.png", "loser/iter_08_remaining_21.0pct.png", "loser/iter_09_remaining_16.8pct.png", "loser/iter_10_remaining_13.4pct.png", "loser/iter_11_remaining_10.7pct.png", "loser/iter_12_remaining_8.6pct.png", "loser/iter_13_remaining_6.9pct.png", "loser/iter_14_remaining_5.5pct.png", "loser/iter_15_remaining_4.4pct.png", "loser/iter_16_remaining_3.5pct.png", "loser/iter_17_remaining_2.8pct.png", "loser/iter_18_remaining_2.3pct.png", "loser/iter_19_remaining_1.8pct.png", "loser/iter_20_remaining_1.4pct.png", "loser/iter_21_remaining_1.2pct.png"]
+      loser: ["loser/iter_01_remaining_100.0pct.png", "loser/iter_02_remaining_80.0pct.png", "loser/iter_03_remaining_64.0pct.png", "loser/iter_04_remaining_51.2pct.png", "loser/iter_05_remaining_41.0pct.png", "loser/iter_06_remaining_32.8pct.png", "loser/iter_07_remaining_26.2pct.png", "loser/iter_08_remaining_21.0pct.png", "loser/iter_09_remaining_16.8pct.png", "loser/iter_10_remaining_13.4pct.png", "loser/iter_11_remaining_10.7pct.png", "loser/iter_12_remaining_8.6pct.png", "loser/iter_13_remaining_6.9pct.png", "loser/iter_14_remaining_5.5pct.png", "loser/iter_15_remaining_4.4pct.png", "loser/iter_16_remaining_3.5pct.png", "loser/iter_17_remaining_2.8pct.png", "loser/iter_18_remaining_2.3pct.png", "loser/iter_19_remaining_1.8pct.png", "loser/iter_20_remaining_1.4pct.png", "loser/iter_21_remaining_1.2pct.png"],
+      winnerFft: Array.from({length: 21}, (_, i) => `winner/fft_iter_${(i+1).toString().padStart(2, '0')}.png`),
+      randomFft: Array.from({length: 21}, (_, i) => `random/fft_iter_${(i+1).toString().padStart(2, '0')}.png`),
+      loserFft: Array.from({length: 21}, (_, i) => `loser/fft_iter_${(i+1).toString().padStart(2, '0')}.png`)
     };
 
     const psnrData = {
@@ -2491,36 +2665,51 @@
       loser: [47.6198, 29.3128, 11.4639, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.3234, 11.9017, 11.9017, 11.9017]
     };
 
+    const hfeData = {
+      winner: [96.25, 96.08, 95.52, 94.58, 92.09, 90.05, 87.35, 84.03, 79.80, 75.91, 71.05, 67.43, 64.13, 59.79, 56.76, 52.99, 49.74, 46.34, 44.46, 31.43, 27.75],
+      random: [96.54, 93.00, 88.41, 82.78, 76.08, 71.89, 64.73, 59.24, 54.66, 46.86, 42.25, 35.46, 28.54, 22.45, 17.52, 14.69, 14.37, 13.82, 12.30, 0.0, 0.0],
+      loser: [96.49, 15.45, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    };
+
     const remaining = [100, 80, 64, 51.2, 41, 32.8, 26.2, 21, 16.8, 13.4, 10.7, 8.6, 6.9, 5.5, 4.4, 3.5, 2.8, 2.3, 1.8, 1.4, 1.2];
 
     // ─── Slider Update ───────────────────────────────────
     function updateImages() {
       const val = parseInt(document.getElementById('slider').value);
+      const isFft = document.getElementById('fftToggle').checked;
       document.getElementById('iterVal').textContent = (val + 1).toString().padStart(2, '0');
       document.getElementById('remainingVal').textContent = remaining[val].toFixed(1) + '%';
-      document.getElementById('winnerPsnr').textContent = psnrData.winner[val].toFixed(1) + ' dB';
-      document.getElementById('loserPsnr').textContent = psnrData.loser[val].toFixed(1) + ' dB';
-      document.getElementById('winnerPsnrCard').textContent = psnrData.winner[val].toFixed(2) + ' dB';
-      document.getElementById('randomPsnrCard').textContent = psnrData.random[val].toFixed(2) + ' dB';
-      document.getElementById('loserPsnrCard').textContent = psnrData.loser[val].toFixed(2) + ' dB';
-      if (imageData.winner[val]) document.getElementById('winner').src = imageData.winner[val];
-      if (imageData.random[val]) document.getElementById('random').src = imageData.random[val];
-      if (imageData.loser[val]) document.getElementById('loser').src = imageData.loser[val];
+      
+      const tickets = ['winner', 'random', 'loser'];
+      tickets.forEach(ticket => {
+        const img = document.getElementById(ticket);
+        const fftImg = document.getElementById(ticket + 'Fft');
+        if (img && imageData[ticket][val]) img.src = imageData[ticket][val];
+        if (fftImg && imageData[ticket + 'Fft'][val]) fftImg.src = imageData[ticket + 'Fft'][val];
+        
+        document.getElementById(ticket + 'PsnrCard').textContent = psnrData[ticket][val].toFixed(1) + ' dB';
+        if (ticket === 'winner' || ticket === 'loser') {
+           const label = document.getElementById(ticket + 'Psnr');
+           if (label) label.textContent = psnrData[ticket][val].toFixed(1) + ' dB';
+        }
+      });
+      
+      // Update toggle class
+      document.getElementById('ticketGrid').classList.toggle('fft-active', isFft);
     }
     updateImages();
 
-    // ─── PSNR Chart ──────────────────────────────────────
+    // ─── Results Chart ──────────────────────────────────────
     const ctx = document.getElementById('psnrChart').getContext('2d');
-    new Chart(ctx, {
+    const resultsChart = new Chart(ctx, {
       type: 'line',
       data: {
-        // Using the raw numbers for a logarithmic scale
         labels: remaining,
         datasets: [
           {
             label: 'Winner',
             data: psnrData.winner.map((v, i) => ({ x: remaining[i], y: v })),
-            borderColor: '#ffcc00', // Gold matching the legend
+            borderColor: '#ffcc00',
             backgroundColor: 'rgba(255, 204, 0, 0.08)',
             borderWidth: 3,
             pointRadius: 5,
@@ -2531,7 +2720,7 @@
           {
             label: 'Random',
             data: psnrData.random.map((v, i) => ({ x: remaining[i], y: v })),
-            borderColor: '#00ffff', // Cyan matching the legend
+            borderColor: '#00ffff',
             backgroundColor: 'rgba(0, 255, 255, 0.08)',
             borderWidth: 3,
             pointRadius: 5,
@@ -2542,7 +2731,7 @@
           {
             label: 'Loser',
             data: psnrData.loser.map((v, i) => ({ x: remaining[i], y: v })),
-            borderColor: '#ff3366', // Pink/Red matching the image
+            borderColor: '#ff3366',
             backgroundColor: 'rgba(255, 51, 102, 0.08)',
             borderWidth: 3,
             pointRadius: 5,
@@ -2566,63 +2755,80 @@
             padding: 12,
             callbacks: {
               title: ctx => `Remaining: ${ctx[0].label}%`,
-              label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)} dB`
+              label: ctx => {
+                const metric = resultsChart.options.scales.y.title.text;
+                const unit = metric.includes('PSNR') ? ' dB' : '%';
+                return `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}${unit}`;
+              }
             }
           }
         },
         scales: {
           x: {
-            type: 'logarithmic', // Makes the spacing match the image
-            reverse: true, // With a logarithmic scale, 'reverse' correctly puts 100 (10^2) on the left
-            grid: { color: 'rgba(255,255,255,0.1)', borderDash: [4, 4] },
-            min: 1, // Sets the minimum bound close to your 2.3%
-            max: 100, // Sets the maximum bound to 100%
+            type: 'logarithmic',
+            reverse: true,
+            grid: { color: 'rgba(255,255,255,0.05)', borderDash: [4, 4] },
+            min: 1,
+            max: 100,
             ticks: {
               color: '#f0f2f8',
-              font: { family: 'JetBrains Mono', size: 12 },
-              callback: function (value, index, values) {
-                // Format ticks as 10^2, 10^1 etc to match the image
-                if (value === 100) return '100';
-                if (value === 80) return '80';
-                if (value === 60) return '60';
-                if (value === 50) return '50';
-                if (value === 40) return '40';
-                if (value === 30) return '30';
-                if (value === 20) return '20';
-                if (value === 10) return '10';
-                if (value === 5) return '5';
-                if (value === 2) return '2';
-                if (value === 1) return '1';
-
-
-                return null;
-              }
+              font: { family: 'JetBrains Mono', size: 11 },
+              callback: v => [100, 80, 60, 40, 20, 10, 5, 2, 1].includes(v) ? v : null
             },
             title: {
               display: true,
               text: 'Remaining Weights (%)',
-              color: '#f0f2f8',
-              font: { family: 'Syne, sans-serif', size: 14 }
+              color: '#7a8099',
+              font: { family: 'Syne, sans-serif', size: 12, weight: 700 }
             }
           },
           y: {
-            grid: { color: 'rgba(255,255,255,0.1)', borderDash: [4, 4] },
+            grid: { color: 'rgba(255,255,255,0.05)', borderDash: [4, 4] },
             min: 10,
             max: 48,
             ticks: {
               color: '#f0f2f8',
-              font: { family: 'JetBrains Mono', size: 12 }
+              font: { family: 'JetBrains Mono', size: 11 }
             },
             title: {
               display: true,
               text: 'PSNR (dB)',
-              color: '#f0f2f8',
-              font: { family: 'Syne, sans-serif', size: 14 }
+              color: '#7a8099',
+              font: { family: 'Syne, sans-serif', size: 12, weight: 700 }
             }
           }
         }
       }
     });
+
+    function updateChartMetric(metric, btn) {
+      // Update buttons
+      document.querySelectorAll('.metric-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const isHfe = metric === 'hfe';
+      const data = isHfe ? hfeData : psnrData;
+      
+      // Update datasets
+      resultsChart.data.datasets[0].data = data.winner.map((v, i) => ({ x: remaining[i], y: v }));
+      resultsChart.data.datasets[1].data = data.random.map((v, i) => ({ x: remaining[i], y: v }));
+      resultsChart.data.datasets[2].data = data.loser.map((v, i) => ({ x: remaining[i], y: v }));
+
+      // Update scales
+      resultsChart.options.scales.y.min = isHfe ? 0 : 10;
+      resultsChart.options.scales.y.max = isHfe ? 100 : 48;
+      resultsChart.options.scales.y.title.text = isHfe ? 'HFE Retention (%)' : 'PSNR (dB)';
+
+      // Update caption
+      const caption = document.getElementById('fig1Caption');
+      if (isHfe) {
+        caption.innerHTML = `<strong>Figure 1.</strong> High-Frequency Energy (HFE) Retention (%) vs. remaining weight fraction. Note the near-instantaneous destruction of carrier frequencies in the losing ticket, mirroring the PSNR collapse.`;
+      } else {
+        caption.innerHTML = `<strong>Figure 1.</strong> PSNR (dB) vs. remaining weight fraction. X-axis is logarithmic (left = dense, right = sparse). Note the winner's slowed decay versus the loser's step-function collapse after just one pruning round.`;
+      }
+
+      resultsChart.update();
+    }
 
     // ─── Highlight.js ─────────────────────────────────────
     hljs.highlightAll();
