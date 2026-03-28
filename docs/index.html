@@ -337,6 +337,8 @@
       line-height: 1.7;
       color: #c8ccd8;
       font-style: italic;
+      text-align: justify;
+      hyphens: auto;
     }
 
     /* ─── Section Headings ──────────────────────────────────── */
@@ -380,6 +382,8 @@
       margin-bottom: 1.4rem;
       font-size: 1.0rem;
       font-weight: 300;
+      text-align: justify;
+      hyphens: auto;
     }
 
     .article strong {
@@ -417,6 +421,8 @@
       padding: 1.25rem 1.75rem;
       border-radius: 8px;
       font-size: 0.95rem;
+      text-align: justify;
+      hyphens: auto;
     }
 
     .callout.insight {
@@ -1357,6 +1363,32 @@
       }
     }
 
+    @media (max-width: 600px) {
+      .hero {
+        min-height: 85vh;
+        justify-content: center;
+        padding: 0 1.5rem 4rem;
+      }
+
+      h1.hero-title {
+        font-size: clamp(2.5rem, 10vw, 4rem);
+        margin-bottom: 1.5rem;
+      }
+
+      .hero-kicker {
+        font-size: 0.65rem;
+        margin-bottom: 1rem;
+      }
+
+      .hero-byline {
+        gap: 0.75rem;
+      }
+
+      .hero-byline p {
+        font-size: 0.75rem;
+      }
+    }
+
     /* ─── Thank You / Feedback Section ─────────────────────── */
     .thank-you-section {
       max-width: 850px;
@@ -2088,8 +2120,8 @@
     <h3 class="sub-title">SIREN Weights as Frequency Carriers</h3>
     <p>Consider what a SIREN weight matrix $\mathbf{W}_i$ actually does. The $j$-th output of layer $i$ computes
       $\sin(\omega_0 (\mathbf{W}_i \mathbf{x})_j + b_j)$. The magnitude of $(\mathbf{W}_i \mathbf{x})_j$ determines the
-      <em>amplitude</em> of the oscillation at that node. This relationship—Weight Magnitude $\rightarrow$
-      Pre-activation $\rightarrow$ Oscillation—is the entire physical mechanism of SIREN architecture:
+      <em>amplitude</em> of the oscillation at that node. This relationship: Weight Magnitude $\rightarrow$
+      Pre-activation $\rightarrow$ Oscillation, is the entire physical mechanism of SIREN architecture:
     </p>
     <div class="causality-grid">
       <div class="causality-row cyan-path">
