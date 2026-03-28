@@ -557,9 +557,11 @@
     .winner .fft-overlay {
       filter: brightness(1.5) contrast(1.2) sepia(1) saturate(3) hue-rotate(-10deg);
     }
+
     .random .fft-overlay {
       filter: brightness(1.5) contrast(1.2) sepia(1) saturate(5) hue-rotate(140deg);
     }
+
     .loser .fft-overlay {
       filter: brightness(1.5) contrast(1.2) sepia(1) saturate(5) hue-rotate(300deg);
     }
@@ -585,7 +587,7 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     }
 
     .toggle-wrap:hover {
@@ -642,7 +644,7 @@
       display: none;
     }
 
-    .toggle-wrap input:checked + .toggle-switch {
+    .toggle-wrap input:checked+.toggle-switch {
       background: var(--gold);
       border-color: var(--gold);
     }
@@ -658,10 +660,10 @@
       transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
     }
 
-    .toggle-wrap input:checked + .toggle-switch .toggle-thumb {
+    .toggle-wrap input:checked+.toggle-switch .toggle-thumb {
       transform: translateX(14px);
       background: var(--bg);
-      box-shadow: 0 0 6px rgba(0,0,0,0.4);
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
     }
 
     .toggle-label {
@@ -677,7 +679,7 @@
       transition: color 0.3s;
     }
 
-    .toggle-wrap input:checked ~ .toggle-label {
+    .toggle-wrap input:checked~.toggle-label {
       color: var(--gold);
     }
 
@@ -2135,9 +2137,9 @@
     <div class="section-number">04 — Results</div>
     <h2 class="section-title" id="results">The Frequency Collapse</h2>
 
-    <p>The results are dramatic enough to be immediately noticeable in the PSNR curves below. Let me walk through what
-      each
-      line is telling us.</p>
+    <p>The results are dramatic enough to be immediately noticeable in the curves below, which you
+      can toggle between PSNR and HFE retention. Both metrics tell the same story from different
+      angles. Let me walk through what each ticket is doing.</p>
   </article>
 
   <!-- ─── PSNR Chart ──────────────────────────────────── -->
@@ -2161,7 +2163,8 @@
           <div class="legend-dot crimson"></div>Losing Ticket (Anti-IMP)
         </div>
       </div>
-      <div class="fig-caption" id="fig1Caption"><strong>Figure 1.</strong> PSNR (dB) vs. remaining weight fraction. X-axis is logarithmic
+      <div class="fig-caption" id="fig1Caption"><strong>Figure 1.</strong> PSNR (dB) vs. remaining weight fraction.
+        X-axis is logarithmic
         (left = dense, right = sparse). Note the winner's slowed decay versus the loser's step-function
         collapse after just one pruning round.</div>
     </div>
@@ -2170,11 +2173,20 @@
   <article class="article">
 
     <h3 class="sub-title">The Winner: Resilient to the End</h3>
-    <p>The winning ticket starts at 47.3&nbsp;dB, essentially perfect reconstruction. Its decay is really slow:
-      still above 40&nbsp;dB at 32.8% remaining weights, above 34&nbsp;dB at just 4.4%, and landing at
-      <strong>29.2&nbsp;dB with only 1.2% of its original parameters</strong>. For context, 30&nbsp;dB is the informal
-      threshold for "perceptually acceptable" image quality. The winning ticket stays above this threshold right up
-      until the final two pruning rounds, which shows resilience at extreme sparsity.
+    <p>The winning ticket starts at 47.3&nbsp;dB and decays slowly: still above 40&nbsp;dB at 32.8%
+      remaining weights, above 34&nbsp;dB at 4.4%, and landing at <strong>29.2&nbsp;dB with only
+        1.2% of its original parameters</strong>. For context, 30&nbsp;dB is the informal threshold
+      for "perceptually acceptable" image quality. The HFE curve mirrors this resilience: the winner
+      retains 53% of its high-frequency spectral energy at 3.5% remaining weights, and still holds
+      27.8% at the final 1.2% mark. The network is not forgetting how to represent frequencies; it
+      is representing fewer of them, gracefully.</p>
+
+    <p>What does this mean? That the Mona Lisa, with all its sfumato gradients, its enigmatic
+      expression, its Renaissance chiaroscuro... can be encoded in roughly 2,387 floating-point
+      numbers and a connectivity pattern, down from 198,915. This is an approximately
+      <strong>40× compression</strong> of the network in terms of storage. In sparse COO format
+      (storing only non-zero weights with their indices), this translates to roughly 19.1&nbsp;KB
+      versus the original ~781&nbsp;KB dense state dict.
     </p>
 
     <p>What does this mean? That the Mona Lisa, with all its sfumato gradients, its enigmatic expression, its
@@ -2184,28 +2196,26 @@
       COO format (storing only non-zero weights with their indices), this translates to
       roughly 19.1&nbsp;KB versus the original ~781&nbsp;KB dense state dict.</p>
 
-    <h3 class="sub-title">The Random Ticket: Logarithmic Decay</h3>
-    <p>The random ticket behaves exactly as you'd expect from information theory: smooth, logarithmic decay. It stays
-      surprisingly competitive at moderate sparsity (staying above 33&nbsp;dB until around 10% remaining), then falls
-      off
-      rapidly below 5%, eventually crashing to 12.9&nbsp;dB at the final 1.2% mark. This is the baseline against which
-      winning and losing tickets are compared, and it demonstrates
-      that <em>structure matters</em>. The winning ticket consistently outperforms the random ticket at every sparsity
-      level (often by massive margins), confirming that the LTH is not a tautology (any sparse network is fine) but a
-      genuine property of the
-      initialization-magnitude alignment.</p>
+
+    <h3 class="sub-title">The Random Ticket: Gradual Decay</h3>
+    <p>The random ticket shows smooth logarithmic PSNR decay, staying competitive at moderate
+      sparsity before crashing to 12.9&nbsp;dB at 1.2%. Its HFE tells a more specific story: the
+      spectral energy drains steadily and hits 0.0% at 1.4% remaining weights, two steps before
+      the final iteration. This means the random ticket does not suffer a structural rupture like
+      the loser, but it converges on the same endpoint: a network that has lost all directionally
+      diverse frequency content and can only produce flat, separable outputs.</p>
 
     <h3 class="sub-title">The Loser: Instantaneous Collapse</h3>
-    <p>The losing ticket's curve is the most surprising feature of this entire experiment. It begins at 47.6&nbsp;dB.
-      Then, at 80% remaining weights (just the first
-      pruning), it drops to 29.3&nbsp;dB. By 64% remaining, it's at 11.5&nbsp;dB, the PSNR of a blank gray screen,
-      where it flatlines for all subsequent iterations.</p>
-
-    <p>This is not gradual. It is a step function. The removal of just the top 36% highest-magnitude weights causes the
-      network to emit noise. It never recovers from this state, despite 19,000 subsequent training epochs. This is the
-      <strong>frequency collapse</strong>: the entire signal-encoding capacity of the SIREN is destroyed in a couple
-      of pruning rounds.
-    </p>
+    <p>The losing ticket's behavior is the sharpest result in this experiment. It begins at
+      47.6&nbsp;dB with 96.5% HFE, indistinguishable from the other tickets. After a single
+      pruning round (80% remaining), PSNR drops to 29.3&nbsp;dB and HFE collapses to 15.4%.
+      After the second round (64% remaining), it reaches 11.5&nbsp;dB, the PSNR of a blank gray
+      screen, and HFE hits 0.0%. Both metrics flatline there for all remaining 18 iterations,
+      across 18,000 subsequent training epochs. The removal of the top 36% highest-magnitude
+      weights destroys the network's spectral structure entirely, and no amount of retraining
+      recovers it. This is the <strong>frequency collapse</strong>: not a gradual loss of quality
+      but an irreversible structural failure readable in both the PSNR curve and the Fourier
+      spectrum simultaneously.</p>
 
     <div class="data-table-wrap">
       <table>
@@ -2654,9 +2664,9 @@
       winner: ["winner/iter_01_remaining_100.0pct.png", "winner/iter_02_remaining_80.0pct.png", "winner/iter_03_remaining_64.0pct.png", "winner/iter_04_remaining_51.2pct.png", "winner/iter_05_remaining_41.0pct.png", "winner/iter_06_remaining_32.8pct.png", "winner/iter_07_remaining_26.2pct.png", "winner/iter_08_remaining_21.0pct.png", "winner/iter_09_remaining_16.8pct.png", "winner/iter_10_remaining_13.4pct.png", "winner/iter_11_remaining_10.7pct.png", "winner/iter_12_remaining_8.6pct.png", "winner/iter_13_remaining_6.9pct.png", "winner/iter_14_remaining_5.5pct.png", "winner/iter_15_remaining_4.4pct.png", "winner/iter_16_remaining_3.5pct.png", "winner/iter_17_remaining_2.8pct.png", "winner/iter_18_remaining_2.3pct.png", "winner/iter_19_remaining_1.8pct.png", "winner/iter_20_remaining_1.4pct.png", "winner/iter_21_remaining_1.2pct.png"],
       random: ["random/iter_01_remaining_100.0pct.png", "random/iter_02_remaining_80.0pct.png", "random/iter_03_remaining_64.0pct.png", "random/iter_04_remaining_51.2pct.png", "random/iter_05_remaining_41.0pct.png", "random/iter_06_remaining_32.8pct.png", "random/iter_07_remaining_26.2pct.png", "random/iter_08_remaining_21.0pct.png", "random/iter_09_remaining_16.8pct.png", "random/iter_10_remaining_13.4pct.png", "random/iter_11_remaining_10.7pct.png", "random/iter_12_remaining_8.6pct.png", "random/iter_13_remaining_6.9pct.png", "random/iter_14_remaining_5.5pct.png", "random/iter_15_remaining_4.4pct.png", "random/iter_16_remaining_3.5pct.png", "random/iter_17_remaining_2.8pct.png", "random/iter_18_remaining_2.3pct.png", "random/iter_19_remaining_1.8pct.png", "random/iter_20_remaining_1.4pct.png", "random/iter_21_remaining_1.2pct.png"],
       loser: ["loser/iter_01_remaining_100.0pct.png", "loser/iter_02_remaining_80.0pct.png", "loser/iter_03_remaining_64.0pct.png", "loser/iter_04_remaining_51.2pct.png", "loser/iter_05_remaining_41.0pct.png", "loser/iter_06_remaining_32.8pct.png", "loser/iter_07_remaining_26.2pct.png", "loser/iter_08_remaining_21.0pct.png", "loser/iter_09_remaining_16.8pct.png", "loser/iter_10_remaining_13.4pct.png", "loser/iter_11_remaining_10.7pct.png", "loser/iter_12_remaining_8.6pct.png", "loser/iter_13_remaining_6.9pct.png", "loser/iter_14_remaining_5.5pct.png", "loser/iter_15_remaining_4.4pct.png", "loser/iter_16_remaining_3.5pct.png", "loser/iter_17_remaining_2.8pct.png", "loser/iter_18_remaining_2.3pct.png", "loser/iter_19_remaining_1.8pct.png", "loser/iter_20_remaining_1.4pct.png", "loser/iter_21_remaining_1.2pct.png"],
-      winnerFft: Array.from({length: 21}, (_, i) => `winner/fft_iter_${(i+1).toString().padStart(2, '0')}.png`),
-      randomFft: Array.from({length: 21}, (_, i) => `random/fft_iter_${(i+1).toString().padStart(2, '0')}.png`),
-      loserFft: Array.from({length: 21}, (_, i) => `loser/fft_iter_${(i+1).toString().padStart(2, '0')}.png`)
+      winnerFft: Array.from({ length: 21 }, (_, i) => `winner/fft_iter_${(i + 1).toString().padStart(2, '0')}.png`),
+      randomFft: Array.from({ length: 21 }, (_, i) => `random/fft_iter_${(i + 1).toString().padStart(2, '0')}.png`),
+      loserFft: Array.from({ length: 21 }, (_, i) => `loser/fft_iter_${(i + 1).toString().padStart(2, '0')}.png`)
     };
 
     const psnrData = {
@@ -2679,21 +2689,21 @@
       const isFft = document.getElementById('fftToggle').checked;
       document.getElementById('iterVal').textContent = (val + 1).toString().padStart(2, '0');
       document.getElementById('remainingVal').textContent = remaining[val].toFixed(1) + '%';
-      
+
       const tickets = ['winner', 'random', 'loser'];
       tickets.forEach(ticket => {
         const img = document.getElementById(ticket);
         const fftImg = document.getElementById(ticket + 'Fft');
         if (img && imageData[ticket][val]) img.src = imageData[ticket][val];
         if (fftImg && imageData[ticket + 'Fft'][val]) fftImg.src = imageData[ticket + 'Fft'][val];
-        
+
         document.getElementById(ticket + 'PsnrCard').textContent = psnrData[ticket][val].toFixed(1) + ' dB';
         if (ticket === 'winner' || ticket === 'loser') {
-           const label = document.getElementById(ticket + 'Psnr');
-           if (label) label.textContent = psnrData[ticket][val].toFixed(1) + ' dB';
+          const label = document.getElementById(ticket + 'Psnr');
+          if (label) label.textContent = psnrData[ticket][val].toFixed(1) + ' dB';
         }
       });
-      
+
       // Update toggle class
       document.getElementById('ticketGrid').classList.toggle('fft-active', isFft);
     }
@@ -2808,7 +2818,7 @@
 
       const isHfe = metric === 'hfe';
       const data = isHfe ? hfeData : psnrData;
-      
+
       // Update datasets
       resultsChart.data.datasets[0].data = data.winner.map((v, i) => ({ x: remaining[i], y: v }));
       resultsChart.data.datasets[1].data = data.random.map((v, i) => ({ x: remaining[i], y: v }));
